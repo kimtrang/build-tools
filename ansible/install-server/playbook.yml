@@ -9,7 +9,7 @@
   tasks:
   # Remove server package
   - name: Couchbase Server | Uninstall server exe
-    win_command: wmic product where name='Couchbase Server' call uninstall
+    win_command=wmic product where name='Couchbase Server' call uninstall
 
   # Delete server binary
   - name: Couchbase Server | Delete server install directory
@@ -27,5 +27,5 @@
   # Install server service
   - name: Couchbase Server | Install server msi "{{ couchbase_server_package }}"
     win_package:
-       path: C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }}
-       state: present
+       path=C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }}
+       state=present
