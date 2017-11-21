@@ -14,9 +14,9 @@
   # Delete server binary
   - name: Couchbase Server | Delete server install directory
     win_file:
-    path: "C:\Program Files\Couchbase"
-    state: absent
-    ignore_errors: yes
+        path="C:\Program Files\Couchbase"
+        state=absent
+        ignore_errors=yes
 
   # Download server package
   - name: Couchbase Server |  Download server exe "{{ couchbase_server_package_url }}"
