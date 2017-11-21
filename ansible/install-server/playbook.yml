@@ -9,7 +9,7 @@
   tasks:
   # Remove server package
   - name: Couchbase Server | Uninstall server exe
-    win_command=wmic product where name='Couchbase Server' call uninstall
+    win_command: wmic product where name='Couchbase Server' call uninstall
 
   # Delete server binary
   - name: Couchbase Server | Delete server install directory
