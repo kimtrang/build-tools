@@ -24,8 +24,8 @@
         url={{ couchbase_server_package_url }}
         dest=C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }}
 
-   Install server service
-    - name: Couchbase Server | Install server msi "{{ couchbase_server_package }}"
+  # Install server service
+  - name: Couchbase Server | Install server msi "{{ couchbase_server_package }}"
     win_package:
        path: C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }}
        state: present
