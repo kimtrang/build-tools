@@ -14,7 +14,7 @@
   # Delete server binary
   - name: Couchbase Server | Delete server install directory
     win_file:
-    path: C:\Program Files\Couchbase
+    path: "C:\Program Files\Couchbase"
     state: absent
     ignore_errors: yes
 
