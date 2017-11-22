@@ -24,8 +24,14 @@
         url={{ couchbase_server_package_url }}
         dest=C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }}
 
-  # Install server service
+  # Install server service msi
   - name: Couchbase Server | Install server msi "{{ couchbase_server_package }}"
     win_package:
        path=C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }}
        state=present
+    when: pkg_type=msi
+
+  # Install server service exe
+  - name: Couchbase Server | Install server msi "{{ couchbase_server_package }}"
+    win_shell: C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_server_package }} /S /v /qn
+    when: pkg_type=exe
