@@ -17,7 +17,7 @@
   # Remove server analytic package
   - name: Couchbase Server | Uninstall cb server analytics msi
     win_command: wmic product where name='Couchbase Server Analytics' call uninstall
-    register: uninstall_output
+    register: analytic_uninstall_output
 
   - debug: var=analytic_uninstall_output.stdout_lines
 
