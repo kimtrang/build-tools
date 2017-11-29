@@ -12,7 +12,7 @@
     win_command: wmic product where name='Couchbase Server' call uninstall
     register: cb_unintall_output
 
-  - debug: var=unintall_output.stdout_lines
+  - debug: var=cb_unintall_output.stdout_lines
 
   - name: Couchbase Server | Uninstall cb analytics msi
     win_command: wmic product where name='Couchbase Server Analytics' call uninstall
