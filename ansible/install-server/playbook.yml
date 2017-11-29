@@ -13,7 +13,7 @@
     register: unintall_output
 
   - debug: 
-        var: result 
+        var: unintall_output.stdout
         verbosity: 2
 
   # Delete server binary
@@ -21,6 +21,7 @@
     win_file:
         path: "C:\\Program Files\\Couchbase"
         state: absent
+        when: "unintall_output.rc == 0"
 
   # Download server package
   - name: Couchbase Server |  Download server exe "{{ couchbase_server_package_url }}"
