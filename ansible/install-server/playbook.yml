@@ -8,20 +8,24 @@
 
   tasks:
   # Remove server package
-  - name: Couchbase Server | Uninstall server msi
+  - name: Couchbase Server | Uninstall cb server msi
     win_command: wmic product where name='Couchbase Server' call uninstall
-    register: unintall_output
+    register: cb_unintall_output
 
-  - debug: 
-        var: unintall_output.stdout
-        verbosity: 2
+  - debug: var=unintall_output.stdout_lines
+
+  - name: Couchbase Server | Uninstall cb analytics msi
+    win_command: wmic product where name='Couchbase Server Analytics' call uninstall
+    register: analytics_unintall_output
+
+  - debug: var=analytics_unintall_output.stdout_lines
 
   # Delete server binary
   - name: Couchbase Server | Delete server install directory
     win_file:
         path: "C:\\Program Files\\Couchbase"
         state: absent
-        when: "unintall_output.rc == 0"
+        when: (cb_unintall_output.rc == "0" or analytics_unintall_output == "0")
 
   # Download server package
   - name: Couchbase Server |  Download server exe "{{ couchbase_server_package_url }}"
