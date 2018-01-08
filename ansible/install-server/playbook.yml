@@ -10,16 +10,16 @@
   # Remove server package
   - name: Couchbase Server | Uninstall cb server msi
     win_command: wmic product where "name like 'Couchbase Server%'" call uninstall
-    register: unintall_output
+    register: uninstall_output
 
-  - debug: var=unintall_output.stdout_lines
+  - debug: var=uninstall_output.stdout_lines
 
   # Delete server binary
   - name: Couchbase Server | Delete server install directory
     win_file:
         path: "C:\\Program Files\\Couchbase"
         state: absent
-        when: unintall_output.rc == "0"
+        when: uninstall_output.rc == "0"
 
   # Download server package
   - name: Couchbase Server |  Download server exe "{{ couchbase_server_package_url }}"
@@ -33,3 +33,9 @@
        path: "C:\\Users\\Administrator\\AppData\\Local\\Temp\\{{ couchbase_server_package }}"
        creates_path: "C:\\Program Files\\Couchbase"
        state: present
+
+  # Remove download server package
+  - name: Couchbase Server |  Remove download server exe "{{ couchbase_server_package_url }}"
+    file:
+        path: "C:\\Users\\Administrator\\AppData\\Local\\Temp\\{{ couchbase_server_package }}"
+        state: absent
