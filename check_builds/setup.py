@@ -1,10 +1,11 @@
 import fnmatch
 import importlib
 import os
+import re
 
 from setuptools import setup
 
-import repo_upload.version
+import check_builds.version
 
 
 # Let's add this later
@@ -27,11 +28,27 @@ def discover_packages(base):
             yield '.'.join(os.path.relpath(root).split(os.sep))
 
 
-def load_requirements(fname):
+def reqfile_read(fname):
     with open(fname, 'r') as reqfile:
         reqs = reqfile.read()
 
-    return list(filter(None, reqs.strip().splitlines()))
+    return filter(None, reqs.strip().splitlines())
+
+
+def load_requirements(fname):
+    requirements = list()
+
+    for req in reqfile_read(fname):
+        if 'git+' in req:
+            subdir_re = re.compile(r'&subdirectory=.+$')
+            req = '=='.join(
+                re.sub(subdir_re, r'', req).rsplit('=')[-1].split('-', 3)[:2]
+            )
+        if req.startswith('--'):
+            continue
+        requirements.append(req)
+
+    return requirements
 
 
 REQUIREMENTS = dict()
@@ -39,19 +56,19 @@ REQUIREMENTS['install'] = load_requirements('requirements.txt')
 
 
 setup_args = dict(
-    name='repo_upload',
-    version=repo_upload.version.__version__,
-    description='Upload APT and Yum repositories to S3',
+    name='check_builds',
+    version=check_builds.version.__version__,
+    description='Check for missing builds on latestbuilds',
     # long_description = long_description,
     author='Couchbase Build and Release Team',
     author_email='build-team@couchbase.com',
     license='Apache License, Version 2.0',
-    packages=list(discover_packages('repo_upload')),
+    packages=list(discover_packages('check_builds')),
     include_package_data=True,
     install_requires=REQUIREMENTS['install'],
     entry_points={
         'console_scripts': [
-            'repo_upload = repo_upload.scripts.repo_upload_prog:main',
+            'check_builds = check_builds.scripts.check_builds_prog:main',
         ]
     },
     classifiers=[

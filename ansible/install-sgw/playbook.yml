@@ -37,7 +37,7 @@
     when: pkg_type == "msi"
 
   # Remove sync_gateway download package
-  - name: SYNC GATEWAY | Remove download sync_gateway exe "{{ couchbase_sync_gateway_package }}"
+  - name: SYNC GATEWAY | Remove download sync_gateway package "{{ couchbase_sync_gateway_package }}"
     win_file:
         path: C:\Users\Administrator\AppData\Local\Temp\{{ couchbase_sync_gateway_package }}
         state: absent
