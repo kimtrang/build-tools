@@ -7,6 +7,7 @@ ansible_password=xxx
 ansible_connection=ssh
 ansible_port=22
 
+
 [windows]
 172.23.108.xxx
 
@@ -17,3 +18,4 @@ ansible_password=xxx
 ansible_winrm_server_cert_validation=ignore
 ansible_connection=winrm
 ansible_winrm_read_timeout_sec=90
+
