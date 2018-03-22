@@ -1,6 +1,8 @@
 ---
 # Install sync_gateway centos binary
 - hosts: unix
+  connection: local
+  gather_facts: true
   any_errors_fatal: true
 
   vars:
