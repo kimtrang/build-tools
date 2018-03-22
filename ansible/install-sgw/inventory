@@ -5,6 +5,7 @@
 ansible_user=root
 ansible_password=xxx
 ansible_connection=ssh
+ansible_port=22
 
 [windows]
 172.23.108.xxx
