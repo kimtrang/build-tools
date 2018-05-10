@@ -3,7 +3,8 @@
 MANIFEST=$1
 
 # Check out the main source code
-repo init -u git://github.com/couchbase/manifest -g all -m couchbase-server/${MANIFEST}
+#repo init -u git://github.com/couchbase/manifest -g all -m couchbase-server/${MANIFEST}
+repo init -u git://github.com/couchbase/manifest -g all -m ${MANIFEST}
 repo sync --jobs=6
 
 # Clone cbdeps (really need to clean this up)
@@ -25,6 +26,8 @@ git clone git://github.com/couchbasedeps/snappy -b 1.1.1
 git clone git://github.com/couchbasedeps/v8 -b 5.2-couchbase
 
 # cbdeps-specific pruning
+
+rm -rf erlang/lib/*test*
 
 # tree-sitter, gyp, ngyp
 rm -rf breakpad/src/tools/gyp
