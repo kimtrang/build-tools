@@ -191,7 +191,7 @@ def gdrive_upload(drive, gdrive_files, folder_id, upload_file):
 
 
 def main(args):
-    output_file = f'{args.release}.txt'
+    output_file = {args.release} + '.txt'
     tree = initialize_etree(args.input)
     remotes = get_remote(tree)
     repos = get_repos(remotes, tree)
