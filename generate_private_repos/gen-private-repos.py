@@ -10,6 +10,8 @@ from pydrive.drive import GoogleDrive
 import sys
 from pprint import pprint
 
+print(sys.path)
+
 
 def initialize_etree(input):
     ''' parse manifest to get ssh remote '''
