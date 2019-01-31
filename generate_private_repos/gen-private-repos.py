@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # rm alice.txt; ./get-private-repos.py --input alice.xml  --release alice
 
+import sys
+print(sys.path)
 import argparse
 import configparser
 from collections import defaultdict
 from lxml import etree
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-import sys
 from pprint import pprint
 
-print(sys.path)
 
 
 def initialize_etree(input):
