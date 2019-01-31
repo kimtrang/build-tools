@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 # rm alice.txt; ./get-private-repos.py --input alice.xml  --release alice
 
 import sys
