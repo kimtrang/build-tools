@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.6
 
+
 import argparse
 import configparser
 from collections import defaultdict
@@ -7,11 +8,9 @@ from lxml import etree
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import sys
-from pprint import pprint
 
 
 def initialize_etree(input):
-    ''' parse manifest to get ssh remote '''
     tree = etree.parse(input)
     return tree
 
@@ -65,6 +64,7 @@ def read_projects_config(conf_file):
         'Analytics': ['cbas', 'cbas-core'] ...
     '''
     projects = []
+    projects_config = {}
     config = configparser.ConfigParser(allow_no_value=True)
     try:
         if config.read(conf_file) != []:
@@ -75,7 +75,6 @@ def read_projects_config(conf_file):
         sys.exit(error)
     else:
         projects = config.sections()
-        projects_config = {}
 
     for proj in projects:
         proj_list = []
@@ -109,8 +108,9 @@ def generate_report(config, repos, rpath, outfile):
     proj_flat_list = [item for llist in lists_of_projects for item in llist]
     found_missing_products = set(repo_names).difference(proj_flat_list)
     if found_missing_products:
-        print("=== Found private repos missing in project.ini! ===")
-        print("Please add these repos in project.ini!")
+        print("\n\n")
+        print("=== Found private repos missing in %s! ===" % conf)
+        print("=== Please add the missing repo(s) in %s file ===!" % conf)
         print('\n'.join(found_missing_products))
         sys.exit(1)
 
@@ -118,8 +118,7 @@ def generate_report(config, repos, rpath, outfile):
     reverse_project_url = {}
     for key, value in project_url.items():
         reverse_project_url.setdefault(value, set()).add(key)
-    # pprint(reverse_project_url)
-    with open(outfile, 'a+') as fh:
+    with open(outfile, 'w') as fh:
         for proj in reverse_project_url:
             fh.write("=== {} ===\n".format(proj))
             fh.write('\n'.join(reverse_project_url[proj]))
@@ -137,7 +136,7 @@ def g_authenticate():
 
 
 def ListFolder(parent_folderid, drive):
-    ''' List all files in gdrive folders and
+    ''' List all files in gdrive folders
         save to filelist dictionary
         filename: file_id
     '''
@@ -157,7 +156,7 @@ def ListFolder(parent_folderid, drive):
 
 def gdrive_upload(drive, gdrive_files, folder_id, upload_file):
     ''' Upload to a folder
-        if file already existed, remove them
+        if file already existed, remove them and re-upload
     '''
     if gdrive_files:
         for fname, fid in gdrive_files.items():
@@ -175,7 +174,8 @@ def gdrive_upload(drive, gdrive_files, folder_id, upload_file):
             except:
                 raise
             else:
-                print('File uploaded, title: {}, id: {}'.format(gfile['title'], gfile['id']))
+                print('File uploaded successfully!')
+                print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
     else:
         ''' Upload file to empty folder '''
         try:
@@ -185,7 +185,8 @@ def gdrive_upload(drive, gdrive_files, folder_id, upload_file):
         except:
             raise
         else:
-            print('File uploaded, title: {}, id: {}'.format(gfile['title'], gfile['id']))
+            print('File uploaded successfully!')
+            print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
 
 
 def main(args):
@@ -206,10 +207,10 @@ if __name__ == "__main__":
     parser.add_argument('--input',
                         help="Input manifest file\n\n", required=True)
     parser.add_argument('--release',
-                        help="Output file base on product name\n", default='mad-hatter',
+                        help="Release name\n", default='mad-hatter',
                         required=True)
     parser.add_argument('--folder_id',
-                        help="Pre-defined folder_id with proper group permission\n", default='157tLwbGuKLxKAbeG7RyO1gv5GC20TgNa',
+                        help="Pre-defined google folder id with proper group permission\n", default='157tLwbGuKLxKAbeG7RyO1gv5GC20TgNa',
                         required=False)
     parser.add_argument('--conf',
                         help="Project config category for each private repos\n", default='projects.ini',
