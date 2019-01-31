@@ -1,16 +1,13 @@
 #!/usr/bin/env python3.6
-# rm alice.txt; ./get-private-repos.py --input alice.xml  --release alice
 
-import sys
-print(sys.path)
 import argparse
 import configparser
 from collections import defaultdict
 from lxml import etree
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import sys
 from pprint import pprint
-
 
 
 def initialize_etree(input):
@@ -89,8 +86,7 @@ def read_projects_config(conf_file):
 
 
 def generate_report(config, repos, rpath, outfile):
-    '''Generate report text file
-    '''
+    '''Generate report text file '''
     project_url = defaultdict(list)
     projects = read_projects_config(config)
     ''' Mapping private repo names against projects.ini category
