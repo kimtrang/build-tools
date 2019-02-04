@@ -1,4 +1,5 @@
 #!/usr/bin/env python3.6
+
 import argparse
 import configparser
 import sys
@@ -11,184 +12,182 @@ from pydrive.drive import GoogleDrive
 import cbbuild.manifest.info as cb_info
 import cbbuild.manifest.parse as cb_parse
 
-from pprint import pprint
 
+class PrivateReposGen:
+    ''' Generate a list of private ssh repos to a text file and upload to google drive '''
 
-def get_project_info(input):
-    manifest = cb_parse.Manifest(input)
-    manifest_data = manifest.parse_data()
-    manifest_info = cb_info.ManifestInfo(manifest_data)
-    priv_urls = dict()
-    for p in manifest_info.get_projects():
-        remote, url = manifest_info.get_project_remote_info(p)
-        if url.startswith('ssh'):
-            priv_urls[p] = url.replace('ssh://git@', 'https://')
+    def __init__(self, args):
+        # Require args definition
+        self.input_manifest = args.input_manifest
+        self.release = args.release
+        self.folder_id = args.folder_id
+        self.conf = args.conf
+        self.upload_file = f'{args.release}.txt'
+        self.priv_urls = dict()
+        self.projects = dict()
+        self.projects_config = dict()
+        self.gdrive = list
+        self.gfolder_filelist = dict()
 
-    return priv_urls
+    def get_project_info(self):
+        ''' Return dictionary of project_name with project git link
+            'backup': 'https://github.com/couchbase/backup.git',
+            'cbftx': 'https://github.com/couchbase/cbftx.git'
+        '''
+        manifest = cb_parse.Manifest(self.input_manifest)
+        manifest_data = manifest.parse_data()
+        manifest_info = cb_info.ManifestInfo(manifest_data)
+        for p in manifest_info.get_projects():
+            remote, url = manifest_info.get_project_remote_info(p)
+            if url.startswith('ssh'):
+                self.priv_urls[p] = url.replace('ssh://git@', 'https://')
 
+        return self.priv_urls
 
-def read_projects_config(conf_file):
-    ''' Read projects config file to determine the project category
+    def read_projects_config(self):
+        ''' Read projects config file to determine the project category
         return dictionary of project category name and list of repo names
-        'Analytics': ['cbas', 'cbas-core'] ...
-    '''
-    projects = []
-    projects_config = {}
-    config = configparser.ConfigParser(allow_no_value=True)
-    try:
-        if config.read(conf_file) != []:
-            pass
+        'Analytics': ['cbas', 'cbas-core'], 'Backup': ['backup'] ...
+        '''
+        projects = []
+        config = configparser.ConfigParser(allow_no_value=True)
+        if config.read(self.conf):
+            project_groups = config.sections()
         else:
-            raise IOError("Error! Cannot parse %s file!" % conf_file)
-    except IOError as error:
-        sys.exit(error)
-    else:
-        project_groups = config.sections()
+            sys.exit(f'Error! Cannot parse {self.conf} file!')
 
-    for proj in project_groups:
-        # list of tuples: [('cbas', ''), ('cbas-core', '')]
-        projects_tuples = config.items(proj)
-        projects = [x[0] for x in projects_tuples]
-        projects_config[proj] = projects
-    return projects_config
-    # return {pgroup: config[pgroup] for pgroup in project_groups}
+        for proj in project_groups:
+            # list of tuples: [('cbas', ''), ('cbas-core', '')]
+            projects_tuples = config.items(proj)
+            proj_names = [t[0] for t in projects_tuples]
+            self.projects_config[proj] = proj_names
 
+        return self.projects_config
 
-def generate_report(config, priv_path_repo, outfile):
-    '''Generate report text file '''
-    project_url = defaultdict(list)
-    projects = read_projects_config(config)
-    ''' Mapping private repo names against projects.ini category
-        return dictionary private repo urls and project category name
-        'http://github.com/couchbase/backup': 'Backup',
-        'http://github.com/couchbase/cbas-core': 'Analytics'
-        'http://github.com/couchbase/cbas': 'Analytics', ...
-    '''
-    print(type(projects))
-    pprint(projects)
-    for repo in priv_path_repo:
-        for proj, proj_config_repos in projects.items():
-            if repo in proj_config_repos:
-                project_url[priv_path_repo[repo]] = proj
+    def generate_report(self):
+        '''Generate report text file '''
+        project_url = defaultdict(list)
+        projects = self.read_projects_config()
+        # Mapping private repo names against projects.ini's category repos name.  Return dictionary private repo urls and project category name
+        #    'http://github.com/couchbase/backup.git': 'Backup',
+        #    'http://github.com/couchbase/cbas-core.git': 'Analytics'
+        #    'http://github.com/couchbase/cbas.git': 'Analytics', ...
+        for proj_name in self.priv_urls:
+            for p_group, p_git_urls in projects.items():
+                if proj_name in p_git_urls:
+                    project_url[self.priv_urls[proj_name]] = p_group
 
-    pprint(project_url)
-    ''' Check if repos has not been define in project config category
-        bailed out so private repos can be added to category in projects.ini
-    '''
-    repo_names = sorted(priv_path_repo.keys())
-    lists_of_projects = sorted(projects.values())
-    # flatten out the lists_of_projects in projects.ini
-    proj_flat_list = [item for llist in lists_of_projects for item in llist]
-    found_missing_products = set(repo_names).difference(proj_flat_list)
-    if found_missing_products:
-        print("\n\n")
-        print("=== Found private repos missing in %s! ===" % config)
-        print("=== Please add the missing repo(s) in %s file ===!" % config)
-        print('\n'.join(found_missing_products))
-        sys.exit(1)
+        # Check if repos has not been define in project config category
+        # bailed out so private repos can be added to category in projects.ini
+        repo_names = sorted(self.priv_urls.keys())
+        project_list = sorted(set(item for plist in projects.values() for item in plist))
+        found_missing_products = set(repo_names).difference(project_list)
+        if found_missing_products:
+            print("\n\n=== Found private repos missing in %s! ===" % self.conf)
+            print("    Please add the missing repo(s) in %s file!" % self.conf)
+            print('\n'.join(found_missing_products))
+            print()
+            sys.exit(1)
 
-    # Generate report
-    reverse_project_url = {}
-    for key, value in project_url.items():
-        reverse_project_url.setdefault(value, set()).add(key)
-    with open(outfile, 'w') as fh:
-        for proj in reverse_project_url:
-            fh.write("=== {} ===\n".format(proj))
-            fh.write('\n'.join(reverse_project_url[proj]))
-            fh.write("\n\n")
+        # Generate report
+        reverse_project_url = {}
+        for key, value in project_url.items():
+            reverse_project_url.setdefault(value, set()).add(key)
+        with open(self.upload_file, 'w') as fh:
+            for proj in reverse_project_url:
+                fh.write("=== {} ===\n".format(proj))
+                fh.write('\n'.join(reverse_project_url[proj]))
+                fh.write("\n\n")
 
+    def g_authenticate(self):
+        ''' Authenticate to google drive api
+            return drive
+        '''
+        gauth = GoogleAuth()
+        gauth.LocalWebserverAuth()
+        self.gdrive = GoogleDrive(gauth)
+        return self.gdrive
 
-def g_authenticate():
-    ''' Authenticate to google drive api
-        return drive
-    '''
-    gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()
-    drive = GoogleDrive(gauth)
-    return drive
+    def g_listfolder(self):
+        ''' List all files in gdrive folders
+            save to filelist dictionary
+            filename: file_id
+        '''
+        file_list = []
+        try:
+            file_list = self.gdrive.ListFile({'q': "'%s' in parents and trashed=false" % self.folder_id}).GetList()
+        except:
+            raise
+        else:
+            for f in file_list:
+                self.gfolder_filelist[f['title']] = f['id']
 
+        return self.gfolder_filelist
 
-def ListFolder(parent_folderid, drive):
-    ''' List all files in gdrive folders
-        save to filelist dictionary
-        filename: file_id
-    '''
-    filelist = {}
-    try:
-        file_list = drive.ListFile({'q': "'%s' in parents and trashed=false" % parent_folderid}).GetList()
-    except:
-        raise
-    else:
-        for f in file_list:
-            if f['mimeType'] == 'application/vnd.google-apps.folder':  # if folder
-                print("AM I IN FOLDER IF?")
-                filelist.append({"id": f['id'], "title": f['title'], "list": ListFolder(f['id'])})
+    def gdrive_upload(self):
+        ''' Upload to a folder
+            if file already existed, remove them and re-upload
+        '''
+        if self.gfolder_filelist:
+            for fname, fid in self.gfolder_filelist.items():
+                if self.upload_file == fname:
+                    try:
+                        gfile = self.gdrive.CreateFile({'id': fid})
+                        gfile.Trash()
+                    except:
+                        raise
             else:
-                print("AM I IN FOLDER ELSE?")
-                filelist[f['title']] = f['id']
-    return filelist
-
-
-def gdrive_upload(drive, gdrive_files, folder_id, upload_file):
-    ''' Upload to a folder
-        if file already existed, remove them and re-upload
-    '''
-    if gdrive_files:
-        for fname, fid in gdrive_files.items():
-            if upload_file == fname:
                 try:
-                    gfile = drive.CreateFile({'id': fid})
-                    gfile.Trash()
+                    gfile = self.gdrive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": self.folder_id}]})
+                    gfile.SetContentFile(self.upload_file)
+                    gfile.Upload()
                 except:
                     raise
+                else:
+                    print('File uploaded successfully!')
+                    print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
         else:
+            # Upload file to empty folder
             try:
-                gfile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}]})
-                gfile.SetContentFile(upload_file)
+                gfile = self.gdrive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": self.folder_id}]})
+                gfile.SetContentFile(self.upload_file)
                 gfile.Upload()
             except:
                 raise
             else:
                 print('File uploaded successfully!')
                 print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
-    else:
-        ''' Upload file to empty folder '''
-        try:
-            gfile = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": folder_id}]})
-            gfile.SetContentFile(upload_file)
-            gfile.Upload()
-        except:
-            raise
-        else:
-            print('File uploaded successfully!')
-            print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
+
+    def repo_gen_caller(self):
+        self.get_project_info()
+        self.generate_report()
+        self.g_authenticate()
+        self.g_listfolder()
+        self.gdrive_upload()
 
 
-def main(args):
-    output_file = f'{args.release}.txt'
-    private_remote_path = get_project_info(args.input)
-    print(private_remote_path)
-    generate_report(args.conf, private_remote_path, output_file)
-    # Upload to gdrive
-    drive = g_authenticate()
-    filelist = ListFolder(args.folder_id, drive)
-    pprint(filelist)
-    #gdrive_upload(drive, filelist, args.folder_id, output_file)
-
-
-if __name__ == "__main__":
+def parse_args():
     parser = argparse.ArgumentParser(description="Get private repos\n\n")
-    parser.add_argument('--input',
+    parser.add_argument('--input-manifest',
                         help="Input manifest file\n\n", required=True)
     parser.add_argument('--release',
                         help="Release name\n", default='mad-hatter',
                         required=True)
-    parser.add_argument('--folder_id',
-                        help="Pre-defined google folder id with proper group permission\n", default='157tLwbGuKLxKAbeG7RyO1gv5GC20TgNa',
-                        required=False)
+    parser.add_argument('--folder-id',
+                        help="Pre-defined google folder id with proper group permission\n", default='157tLwbGuKLxKAbeG7RyO1gv5GC20TgNa')
     parser.add_argument('--conf',
-                        help="Project config category for each private repos\n", default='projects.ini',
-                        required=False)
-
+                        help="Project config category for each private repos\n", default='projects.ini')
     args = parser.parse_args()
-    main(args)
+
+    return args
+
+
+def main():
+    """ Create private ssh repos object and call repo_gen_caller function to drive the program """
+
+    private_repos_project = PrivateReposGen(parse_args())
+    private_repos_project.repo_gen_caller()
+
+
+if __name__ == '__main__':
+    main()
