@@ -31,7 +31,7 @@ class PrivateReposGen:
         self.gfolder_filelist = dict()
 
     def get_project_info(self):
-        """Return dictionary of project_name with project git link
+        """Return generate of project_name with project git link
             'backup': 'https://github.com/couchbase/backup.git',
             'cbftx': 'https://github.com/couchbase/cbftx.git'"""
         manifest = cb_parse.Manifest(self.input_manifest)
@@ -44,7 +44,7 @@ class PrivateReposGen:
 
     def read_projects_config(self):
         """Read projects config file to determine the project category
-        return dictionary of project category name and list of repo names
+        return generate of project category name and list of repo names
         'Analytics': ['cbas', 'cbas-core'], 'Backup': ['backup'] ..."""
         projects = []
         config = configparser.ConfigParser(allow_no_value=True)
@@ -61,24 +61,25 @@ class PrivateReposGen:
 
     def generate_report(self):
         """Generate report text file"""
+        nl = '\n'
         project_url = defaultdict(list)
-        # Mapping private repo names against projects.ini's category repos name.  Return dictionary private repo urls and project category name
+        # Mapping private repo names against projects.ini's category repos name.  Return generate of private repo urls and project category name
         #    'http://github.com/couchbase/backup.git': 'Backup',
         #    'http://github.com/couchbase/cbas-core.git': 'Analytics'
         #    'http://github.com/couchbase/cbas.git': 'Analytics', ...
         for proj_name, proj_url in self.priv_urls.items():
             for p_group, p_git_urls in self.projects_config.items():
                 if proj_name in p_git_urls:
-                    project_url[self.priv_urls[proj_name]] = p_group
+                    project_url[proj_url] = p_group
 
         # Check if private repo(s) found in manifest.xml is missing from project group in args.conf
         repo_names = sorted(self.priv_urls.keys())
-        project_list = sorted(set(item for plist in self.projects_config.values() for item in plist))
-        found_missing_products = set(repo_names).difference(project_list)
+        project_set = sorted(set(item for plist in self.projects_config.values() for item in plist))
+        found_missing_products = set(repo_names).difference(project_set)
         if found_missing_products:
-            print("\n\n=== Found private repos missing in %s! ===" % self.conf)
-            print("    Please add the missing repo(s) in %s file!" % self.conf)
-            print('\n'.join(found_missing_products))
+            print(f'{nl}{nl}=== Found private repos missing in {self.conf}! ===')
+            print(f'    Please add the missing repo(s) in {self.conf} file!')
+            print(f'{nl}{nl.join(found_missing_products)}')
             print()
             sys.exit(1)
 
@@ -88,9 +89,9 @@ class PrivateReposGen:
             reverse_project_url[value].add(key)
         with open(self.upload_file, 'w') as fh:
             for proj in reverse_project_url:
-                fh.write("=== {} ===\n".format(proj))
-                fh.write('\n'.join(reverse_project_url[proj]))
-                fh.write("\n\n")
+                fh.write(f'=== {proj} ==={nl}')
+                fh.write(f'{nl}{nl.join(reverse_project_url[proj])}')
+                fh.write(f'{nl}{nl}')
 
     def g_authenticate(self):
         """Authenticate to google drive api
@@ -107,7 +108,7 @@ class PrivateReposGen:
         """
         file_list = list()
         try:
-            file_list = self.gdrive.ListFile({'q': "'%s' in parents and trashed=false" % self.folder_id}).GetList()
+            file_list = self.gdrive.ListFile({'q': f"'{self.folder_id}' in parents and trashed=false"}).GetList()
         except ApiRequestError as exc:
             raise RuntimeError(exc.message)
         else:
@@ -133,7 +134,7 @@ class PrivateReposGen:
                     raise RuntimeError(exc.message)
                 else:
                     print('File uploaded successfully!')
-                    print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
+                    print(f"title: {gfile['title']}, id: {gfile['id']}")
         else:
             # Upload file to empty folder
             try:
@@ -144,14 +145,16 @@ class PrivateReposGen:
                 raise RuntimeError(exc.message)
             else:
                 print('File uploaded successfully!')
-                print('title: {}, id: {}'.format(gfile['title'], gfile['id']))
+                print(f"title: {gfile['title']}, id: {gfile['id']}")
 
     def repo_gen_caller(self):
+        """ Driver function calls for the program"""
         self.get_project_info()
         self.read_projects_config()
         self.generate_report()
         self.g_authenticate()
         self.g_listfolder()
+        print(self.gfolder_filelist)
         self.gdrive_upload()
 
 
