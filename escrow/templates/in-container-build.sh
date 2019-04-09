@@ -78,8 +78,9 @@ done
 build_cbdep() {
   dep=$1
   tlmsha=$2
+  ver=$3
 
-  if [ -e ${CACHE}/${dep}*.tgz ]
+  if [ -e ${CACHE}/${dep}*${ver}*.tgz ]
   then
     echo "Dependency ${dep} already built..."
     return
@@ -166,9 +167,9 @@ done
 # Build all dependencies. The manifest is named after DOCKER_PLATFORM.
 for dep in $( cat ${ROOT}/deps/dep_manifest_${DOCKER_PLATFORM}.txt )
 do
-  DEPS=$(echo ${dep} | sed 's/:/ /')
+  DEPS=$(echo ${dep} | sed 's/:/ /g')
   heading "Building dependency: ${DEPS}"
-  build_cbdep $(echo ${dep} | sed 's/:/ /')  || exit 1
+  build_cbdep $(echo ${dep} | sed 's/:/ /g')  || exit 1
 done
 
 # Pre-populate openjdk-rt, without this dep will cause apache-hyrack build failure

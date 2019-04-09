@@ -126,7 +126,7 @@ download_cbdep() {
     echo "ERROR: couldn't find tlm SHA for ${dep} ${version} @${cbnum}@"
     exit 1
   fi
-  echo "${dep}:${tlmsha}" >> ${dep_manifest}
+  echo "${dep}:${tlmsha}:${ver}" >> ${dep_manifest}
 }
 
 # Determine set of cbdeps used by this build, per platform.
