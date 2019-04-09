@@ -52,12 +52,14 @@ git config --global color.ui false
 repo init -u git://github.com/couchbase/manifest -g all -m ${MANIFEST_FILE}
 repo sync --jobs=6
 
+cp -rp tlm tlm_dep
+
 # Ensure we have git history for 'master' branch of tlm, so we can
 # switch to the right cbdeps build steps
 ( cd tlm && git fetch couchbase refs/heads/master )
 
 # Extra tlm_dep to build depdendencies outside of tml/dep/manifest.cmake, e.g. folly's
-( git clone https://github.com/couchbase/tlm.git tlm_dep && cd tlm_dep && git fetch couchbase refs/heads/master )
+( cd tlm_dep && git fetch couchbase refs/heads/master )
 
 # Download all cbdeps source code
 mkdir -p ${ESCROW}/deps ${ESCROW}/deps2
