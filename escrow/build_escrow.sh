@@ -56,8 +56,11 @@ repo sync --jobs=6
 # switch to the right cbdeps build steps
 ( cd tlm && git fetch couchbase refs/heads/master )
 
+# Extra tlm_dep to build depdendencies outside of tml/dep/manifest.cmake, e.g. folly's
+( git clone https://github.com/couchbase/tlm.git tlm_dep && cd tlm_dep && git fetch couchbase refs/heads/master )
+
 # Download all cbdeps source code
-mkdir -p ${ESCROW}/deps
+mkdir -p ${ESCROW}/deps ${ESCROW}/deps2
 
 get_cbdep_git() {
   local dep=$1
@@ -77,11 +80,44 @@ get_cbdep_git() {
   fi
 }
 
+get_cbdep_git_folly() {
+  local dep=$1
+
+  cd ${ESCROW}/deps2
+  if [ ! -d ${dep} ]
+  then
+    heading "Downloading cbdep ${dep} ..."
+    # This special approach ensures all remote branches are brought
+    # down as well, which ensures in-container-build.sh can also check
+    # them out. See https://stackoverflow.com/a/37346281/1425601 .
+    mkdir ${dep}
+    cd ${dep}
+    git clone --bare git://github.com/couchbasedeps/${dep}.git
+    git config core.bare false
+    git checkout
+  fi
+}
+
 get_cbddeps2_src() {
   local dep=$1
   local manifest=$2
 
   cd ${ESCROW}/deps
+  if [ ! -d ${dep} ]
+  then
+    mkdir ${dep}
+    cd ${dep}
+    heading "Downloading cbdep2 ${dep} ..."
+    repo init -u git://github.com/couchbase/manifest -g all -m cbdeps/${dep}/${manifest}
+    repo sync --jobs=6
+  fi
+}
+
+get_cbddeps2_src_folly() {
+  local dep=$1
+  local manifest=$2
+
+  cd ${ESCROW}/deps2
   if [ ! -d ${dep} ]
   then
     mkdir ${dep}
@@ -142,6 +178,43 @@ download_cbdep() {
   echo "${dep}:${tlmsha}:${ver}" >> ${dep_manifest}
 }
 
+download_cbdep_folly() {
+  local dep=$1
+  local ver=$2
+  local dep_manifest=$3
+
+  # skip openjdk-rt cbdeps build
+  if [[ ${dep} == 'openjdk-rt' ]]
+  then
+    :
+  else
+    get_cbdep_git_folly ${dep}
+  fi
+
+  # Split off the "version" and "build number"
+  version=$(echo ${ver} | perl -nle '/^(.*?)(-cb.*)?$/ && print $1')
+  cbnum=$(echo ${ver} | perl -nle '/-cb(.*)/ && print $1')
+
+  # Figure out the tlm SHA which builds this dep
+  tlmsha=$(
+    cd ${ESCROW}/src/tlm_dep &&
+    git grep -c "_ADD_DEP_PACKAGE(${dep} ${version} .* ${cbnum})" \
+      $(git rev-list --all -- deps/packages/CMakeLists.txt) \
+      -- deps/packages/CMakeLists.txt \
+    | awk -F: '{ print $1 }' | head -1
+  )
+  echo "tlmsha: cd ${ESCROW}/src/tlm_dep && git grep -c \"_ADD_DEP_PACKAGE(${dep} ${version} .* ${cbnum})\" \
+    git grep -c \"_ADD_DEP_PACKAGE(${dep} ${version} .* ${cbnum})\" \
+    -- deps/packages/CMakeLists.txt \
+    | awk -F: '{ print $1 }' | head -1"
+
+  if [ -z "${tlmsha}" ]; then
+    echo "ERROR: couldn't find tlm SHA for ${dep} ${version} @${cbnum}@"
+    exit 1
+  fi
+  echo "${dep}:${tlmsha}:${ver}" >> ${dep_manifest}
+}
+
 # Determine set of cbdeps used by this build, per platform.
 for platform in ${PLATFORMS}
 do
@@ -162,12 +235,19 @@ do
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
   folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
   get_folly_deps
-  add_packs+=$(cat ${folly_dep_manifest})
-  echo "add_packs folly: $add_packs"
+  for pkg in `cat ${folly_dep_manifest}`
+  do
+      download_cbdep_folly $(echo ${add_pack} | sed 's/:/ /g') ${folly_dep_manifest}
+  done
 
   get_folly_deps_v2
-  add_packs_v2+=$(cat ${folly_dep_v2_manifest})
-  echo "add_packs_v2 folly: $add_packs_v2"
+  echo "add_packs_v2 folly: "
+  $(cat $folly_dep_v2_manifest)
+  # Get cbdeps V2 source
+  for pkg in `cat ${folly_dep_v2_manifest}`
+  do
+    get_cbddeps2_src $(echo ${add_pack} | sed 's/:.*/ /g') master.xml
+  done
 
   # Download and keep a record of all third-party deps
   dep_manifest=${ESCROW}/deps/dep_manifest_${platform}.txt
