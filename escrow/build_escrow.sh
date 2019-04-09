@@ -88,7 +88,7 @@ get_cbdep_git_folly() {
   cd ${ESCROW}/deps2
   if [ ! -d ${dep} ]
   then
-    heading "Downloading cbdep ${dep} ..."
+    heading "Downloading folly cbdep ${dep} ..."
     # This special approach ensures all remote branches are brought
     # down as well, which ensures in-container-build.sh can also check
     # them out. See https://stackoverflow.com/a/37346281/1425601 .
@@ -237,7 +237,7 @@ do
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
   folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
   get_folly_deps
-  for pkg in `cat ${folly_dep_manifest}`
+  cat ${folly_dep_manifest} | while read -r pkg
   do
       download_cbdep_folly $(echo ${pkg} | sed 's/:/ /g') ${folly_dep_manifest}
   done
@@ -246,7 +246,7 @@ do
   echo "add_packs_v2 folly: "
   $(cat $folly_dep_v2_manifest)
   # Get cbdeps V2 source
-  for pkg in `cat ${folly_dep_v2_manifest}`
+  cat ${folly_dep_v2_manifest} | while read -r pkg
   do
     get_cbddeps2_src $(echo ${pkg} | sed 's/:.*/ /g') master.xml
   done
