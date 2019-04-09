@@ -93,13 +93,16 @@ get_cbddeps2_src() {
 }
 
 get_folly_deps() {
-  grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${folly_dep_manifest}
+  grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep -v V2| awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${folly_dep_manifest}
   egrep  -A1 '^if\(WIN32\)' ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep declare | awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${ESCROW}/deps/folly.tmp
-  cat folly.tmp | while read -r fl
+  cat ${ESCROW}/deps/folly.tmp | while read -r fl
   do
      echo == "$fl" ==
      sed -i.bak "/$fl$/d" ${folly_dep_manifest}
   done
+}
+get_folly_deps_v2() {
+  grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep V2 | awk -F'(' '{print $2}' | awk '{print $1 ":" $4 "-" $6}' > ${folly_dep_v2_manifest}
 }
 
 download_cbdep() {
@@ -157,9 +160,14 @@ do
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
+  folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
   get_folly_deps
   add_packs+=$(cat ${folly_dep_manifest})
   echo "add_packs folly: $add_packs"
+
+  get_folly_deps_v2
+  add_packs_v2+=$(cat ${folly_dep_v2_manifest})
+  echo "add_packs_v2 folly: $add_packs_v2"
 
   # Download and keep a record of all third-party deps
   dep_manifest=${ESCROW}/deps/dep_manifest_${platform}.txt
