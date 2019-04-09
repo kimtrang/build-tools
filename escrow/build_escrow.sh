@@ -92,6 +92,17 @@ get_cbddeps2_src() {
   fi
 }
 
+get_folly_deps() {
+  local folly_dep_manifest=$1
+  grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${folly_dep_manifest}
+  egrep  -A1 '^if\(WIN32\)' ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep declare | awk -F'(' '{print $2}' | awk '{print $1,$3}' > folly.tmp
+  cat folly.tmp | while read -r fl
+  do
+     echo == "$fl" ==
+     sed -i.bak "/$fl$/d" ${folly_dep_manifest}
+  done
+}
+
 download_cbdep() {
   local dep=$1
   local ver=$2
@@ -141,10 +152,15 @@ do
     | awk '{sub(/\(/, "", $2); print $2 ":" $5 "-" $7}'
   )
   #folly_extra_deps="gflags glog"
-  gflags_extra_deps="gflags:2.2.1-cb2"
-  add_packs+=$(echo -e "\n${gflags_extra_deps}")
+  #gflags_extra_deps="gflags:2.2.1-cb2"
+  #add_packs+=$(echo -e "\n${gflags_extra_deps}")
   echo "add_packs: $add_packs"
   echo "add_packs_v2: $add_packs_v2"
+  # get folly's dependencies
+  folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
+  get_folly_deps folly_dep_manifest
+  add_packs+=$(cat ${folly_dep_manifest})
+  echo "add_packs folly: $add_packs"
 
   # Download and keep a record of all third-party deps
   dep_manifest=${ESCROW}/deps/dep_manifest_${platform}.txt
