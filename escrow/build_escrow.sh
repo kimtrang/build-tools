@@ -93,9 +93,8 @@ get_cbddeps2_src() {
 }
 
 get_folly_deps() {
-  local folly_dep_manifest=$1
   grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${folly_dep_manifest}
-  egrep  -A1 '^if\(WIN32\)' ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep declare | awk -F'(' '{print $2}' | awk '{print $1,$3}' > folly.tmp
+  egrep  -A1 '^if\(WIN32\)' ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep declare | awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${ESCROW}/deps/folly.tmp
   cat folly.tmp | while read -r fl
   do
      echo == "$fl" ==
@@ -158,7 +157,7 @@ do
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
-  get_folly_deps folly_dep_manifest
+  get_folly_deps
   add_packs+=$(cat ${folly_dep_manifest})
   echo "add_packs folly: $add_packs"
 
