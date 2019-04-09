@@ -239,7 +239,7 @@ do
   get_folly_deps
   for pkg in `cat ${folly_dep_manifest}`
   do
-      download_cbdep_folly $(echo ${add_pack} | sed 's/:/ /g') ${folly_dep_manifest}
+      download_cbdep_folly $(echo ${pkg} | sed 's/:/ /g') ${folly_dep_manifest}
   done
 
   get_folly_deps_v2
@@ -248,7 +248,7 @@ do
   # Get cbdeps V2 source
   for pkg in `cat ${folly_dep_v2_manifest}`
   do
-    get_cbddeps2_src $(echo ${add_pack} | sed 's/:.*/ /g') master.xml
+    get_cbddeps2_src $(echo ${pkg} | sed 's/:.*/ /g') master.xml
   done
 
   # Download and keep a record of all third-party deps
