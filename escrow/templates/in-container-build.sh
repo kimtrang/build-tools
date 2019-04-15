@@ -59,6 +59,9 @@ then
   cp -aL ${ROOT}/src/tlm ${TLMDIR} > /dev/null 2>&1
 fi
 
+#Folly
+cp ${ROOT}/dep_manifest_folly_${DOCKER_PLATFORM}.txt ${ROOT}/deps/dep_manifest_folly_${DOCKER_PLATFORM}.txt || exit 1
+
 # Pre-populate cbdeps
 heading "Populating cbdeps..."
 case ${PLATFORM} in

@@ -63,7 +63,7 @@ cp -rp tlm tlm_dep
 
 # Download all cbdeps source code
 mkdir -p ${ESCROW}/deps ${ESCROW}/deps2
-cp dep_manifest_folly_centos7.txt ${ESCROW}/deps/
+cp ${ROOT}/dep_manifest_folly_centos7.txt ${ESCROW}/deps/
 
 get_cbdep_git() {
   local dep=$1
@@ -318,7 +318,7 @@ done
 
 heading "Copying build scripts into escrow..."
 cd ${ROOT}
-cp -a escrow_config templates/* ${ESCROW}
+cp -a escrow_config dep_manifest_folly_${platform}.txt templates/* ${ESCROW}
 perl -pi -e "s/\@\@VERSION\@\@/${VERSION}/g; s/\@\@PLATFORMS\@\@/${PLATFORMS}/g" \
   ${ESCROW}/README.md ${ESCROW}/build-couchbase-server-from-escrow.sh
 
