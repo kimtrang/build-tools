@@ -24,8 +24,6 @@ ROOT=`pwd`
 ESCROW=${ROOT}/${PRODUCT}-${VERSION}
 mkdir -p ${ESCROW}
 
-cp dep_manifest_folly_centos7.txt ${ESCROW}/deps/
-
 # Save copies of all Docker build images
 echo "Saving Docker images..."
 mkdir -p ${ESCROW}/docker_images
@@ -65,6 +63,7 @@ cp -rp tlm tlm_dep
 
 # Download all cbdeps source code
 mkdir -p ${ESCROW}/deps ${ESCROW}/deps2
+cp dep_manifest_folly_centos7.txt ${ESCROW}/deps/
 
 get_cbdep_git() {
   local dep=$1
