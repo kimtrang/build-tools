@@ -83,7 +83,7 @@ docker exec ${DOCKER_EXEC_OPTION} ${SLAVENAME} rm -rf /home/couchbase/escrow
 docker exec ${DOCKER_EXEC_OPTION} ${SLAVENAME} mkdir -p /home/couchbase/escrow
 docker exec ${DOCKER_EXEC_OPTION} ${SLAVENAME} cp -a /escrow/in-container-build.sh \
   /escrow/escrow_config \
-  /escrow/dep_manifest_folly_${PLATFORM}.txt
+  /escrow/dep_manifest_folly_${PLATFORM}.txt \
   /escrow/deps /escrow/golang \
   /escrow/src /home/couchbase/escrow
 docker exec ${DOCKER_EXEC_OPTION} ${SLAVENAME} chown -R couchbase:couchbase /home/couchbase
