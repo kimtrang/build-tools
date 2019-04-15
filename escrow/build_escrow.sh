@@ -185,6 +185,10 @@ download_cbdep_folly() {
   local ver=$2
   local dep_manifest=$3
 
+  echo "dep: $1"
+  echo "ver: $2"
+  echo "dep_manifest: $dep_manifest"
+
   # skip openjdk-rt cbdeps build
   if [[ ${dep} == 'openjdk-rt' ]]
   then
@@ -234,9 +238,11 @@ do
   echo "add_packs: $add_packs"
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
-  folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
+  #folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
+  folly_dep_manifest=${ESCROW}/dep_manifest_folly_${platform}.txt
   folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
-  get_folly_deps
+  #get_folly_deps
+  sed -i '/^$/d' ${folly_dep_manifest}
   cat ${folly_dep_manifest} | while read -r pkg
   do
       download_cbdep_folly $(echo ${pkg} | sed 's/:/ /g') ${folly_dep_manifest}
