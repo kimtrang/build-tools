@@ -24,6 +24,8 @@ ROOT=`pwd`
 ESCROW=${ROOT}/${PRODUCT}-${VERSION}
 mkdir -p ${ESCROW}
 
+cp dep_manifest_folly_centos7.txt ${ESCROW}/deps/
+
 # Save copies of all Docker build images
 echo "Saving Docker images..."
 mkdir -p ${ESCROW}/docker_images
@@ -238,8 +240,8 @@ do
   echo "add_packs: $add_packs"
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
-  #folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
-  folly_dep_manifest=${ESCROW}/dep_manifest_folly_${platform}.txt
+  folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
+  #folly_dep_manifest=${ESCROW}/dep_manifest_folly_${platform}.txt
   folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
   #get_folly_deps
   sed -i '/^$/d' ${folly_dep_manifest}
