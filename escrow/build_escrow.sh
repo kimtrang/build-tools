@@ -142,6 +142,8 @@ get_folly_deps() {
 }
 get_folly_deps_v2() {
   grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep V2 | awk -F'(' '{print $2}' | awk '{print $1 ":" $4 "-" $6}' > ${folly_dep_v2_manifest}
+  echo "folly_dep_v2_manifest:"
+  cat ${folly_dep_v2_manifest}
 }
 
 download_cbdep() {
@@ -250,8 +252,7 @@ do
   done
 
   get_folly_deps_v2
-  echo "add_packs_v2 folly: "
-  $(cat $folly_dep_v2_manifest)
+
   # Get cbdeps V2 source
   cat ${folly_dep_v2_manifest} | while read -r pkg
   do
