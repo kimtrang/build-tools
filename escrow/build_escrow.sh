@@ -63,7 +63,7 @@ cp -rp tlm tlm_dep
 
 # Download all cbdeps source code
 mkdir -p ${ESCROW}/deps ${ESCROW}/deps2
-cp ${ROOT}/dep_manifest_folly_centos7.txt ${ESCROW}/deps/
+cp ${ROOT}/dep_manifest_folly_centos7-2.txt ${ESCROW}/deps/
 
 get_cbdep_git() {
   local dep=$1
@@ -241,12 +241,13 @@ do
   echo "add_packs: $add_packs"
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
+  folly_dep_manifest_tmp='${ESCROW}/deps/dep_manifest_folly_${platform}-2.txt'
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
   #folly_dep_manifest=${ESCROW}/dep_manifest_folly_${platform}.txt
   folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
   #get_folly_deps
-  sed -i '/^$/d' ${folly_dep_manifest}
-  cat ${folly_dep_manifest} | while read -r pkg
+  sed -i '/^$/d' ${folly_dep_manifest_tmp}
+  cat ${folly_dep_manifest_tmp} | while read -r pkg
   do
       download_cbdep_folly $(echo ${pkg} | sed 's/:/ /g') ${folly_dep_manifest}
   done

@@ -61,7 +61,7 @@ then
 fi
 
 #Folly
-cp ${ROOT}/dep_manifest_folly_${DOCKER_PLATFORM}.txt ${ROOT}/deps/dep_manifest_folly_${DOCKER_PLATFORM}.txt || exit 1
+cp ${ROOT}/dep_manifest_folly_${DOCKER_PLATFORM}-2.txt ${ROOT}/deps/dep_manifest_folly_${DOCKER_PLATFORM}-2.txt || exit 1
 
 # Pre-populate cbdeps
 heading "Populating cbdeps..."
@@ -219,24 +219,24 @@ build_cbdep_v2_folly() {
   fi
 
   heading "Building dependency ${dep}...."
-  cd ${TLMDIR}
-  cp -rf /escrow/deps/${dep} ${TLMDIR}/deps/packages/
+  cd ${TLMDIR}_dep
+  cp -rf /escrow/deps2/${dep} ${TLMDIR}_dep/deps/packages/
 
   # Invoke the actual build script
-  pushd ${TLMDIR}/deps/packages/${dep} && \
+  pushd ${TLMDIR}_dep/deps/packages/${dep} && \
   export WORKSPACE=`pwd` && \
   export PRODUCT=${dep} && \
-  export VERSION=$(egrep VERSION /home/couchbase/escrow/deps/${dep}/.repo/manifest.xml  | awk '{ for ( n=1; n<=NF; n++ ) if($n ~ "value=") print $n }'  | cut -d'=' -f2  | cut -d'"' -f2) && \
+  export VERSION=$(egrep VERSION /home/couchbase/escrow/deps2/${dep}/.repo/manifest.xml  | awk '{ for ( n=1; n<=NF; n++ ) if($n ~ "value=") print $n }'  | cut -d'=' -f2  | cut -d'"' -f2) && \
   export BLD_NUM=$(echo $ver | awk -F'-' '{print $2}') && \
   export LOCAL_BUILD=true && \
   build-tools/cbdeps/scripts/build-one-cbdep
 
   echo
   echo "Copying dependency ${dep} to local cbdeps cache..."
-  tarball=$( ls ${TLMDIR}/deps/packages/${dep}/*/*/*/*/*.tgz )
+  tarball=$( ls ${TLMDIR}_dep/deps/packages/${dep}/*/*/*/*/*.tgz )
   cp ${tarball} ${CACHE}
   cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
-  rm -rf ${TLMDIR}/deps/packages/${dep}
+  rm -rf ${TLMDIR}_dep/deps/packages/${dep}
 }
 
 # Build V2 dependencies first.
