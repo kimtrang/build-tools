@@ -151,31 +151,31 @@ build_cbdep_folly() {
   shopt -s nullglob
   sed -i.bak \
     -e "s/\(git\|https\):\/\/github.com\/couchbasedeps\/\([^ ]*\)/file:\/\/\/home\/couchbase\/escrow\/deps2\/${dep}\/\2/g" \
-    ${TLMDIR}_dep/deps2/packages/CMakeLists.txt \
-    ${TLMDIR}_dep/deps2/packages/*/CMakeLists.txt \
-    ${TLMDIR}_dep/deps2/packages/*/*.sh
+    ${TLMDIR}_dep/deps/packages/CMakeLists.txt \
+    ${TLMDIR}_dep/deps/packages/*/CMakeLists.txt \
+    ${TLMDIR}_dep/deps/packages/*/*.sh
   shopt -u nullglob
   # Fix the depot_tools entry
   if [ ${dep} == 'v8' ]; then
-     sed -i.bak2 -e 's/file:\/\/\/home\/couchbase\/escrow\/deps2\/v8\/depot_tools/file:\/\/\/home\/couchbase\/escrow\/deps2\/depot_tools\/depot_tools.git/g' ${TLMDIR}_dep/deps2/packages/*/*.sh
+     sed -i.bak2 -e 's/file:\/\/\/home\/couchbase\/escrow\/deps2\/v8\/depot_tools/file:\/\/\/home\/couchbase\/escrow\/deps2\/depot_tools\/depot_tools.git/g' ${TLMDIR}_dep/deps/packages/*/*.sh
   fi
 
   # skip openjdk-rt cbdeps build
   if [ ${dep} == 'openjdk-rt' ]
   then
-    rm -f ${TLMDIR}_dep/deps2/packages/openjdk-rt/dl_rt_jar.cmake
-    touch ${TLMDIR}_dep/deps2/packages/openjdk-rt/dl_rt_jar.cmake
+    rm -f ${TLMDIR}_dep/deps/packages/openjdk-rt/dl_rt_jar.cmake
+    touch ${TLMDIR}_dep/deps/packages/openjdk-rt/dl_rt_jar.cmake
   fi
 
   # Invoke the actual build script
-  PACKAGE=${dep} deps2/scripts/build-one-cbdep
+  PACKAGE=${dep} deps/scripts/build-one-cbdep
 
   echo
   echo "Copying dependency ${dep} to local cbdeps cache..."
-  tarball=$( ls ${TLMDIR}/deps2/packages/build/deps/${dep}/*/*.tgz )
+  tarball=$( ls ${TLMDIR}_dep/deps/packages/build/deps/${dep}/*/*.tgz )
   cp ${tarball} ${CACHE}
   cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
-  rm -rf ${TLMDIR}_dep/deps2/packages/build/deps/${dep}
+  rm -rf ${TLMDIR}_dep/deps/packages/build/deps/${dep}
 }
 
 build_cbdep_v2() {
