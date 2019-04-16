@@ -241,7 +241,7 @@ do
   echo "add_packs: $add_packs"
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
-  folly_dep_manifest_tmp='${ESCROW}/deps/dep_manifest_folly_${platform}-2.txt'
+  folly_dep_manifest_tmp=${ESCROW}/deps/dep_manifest_folly_${platform}-2.txt
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
   #folly_dep_manifest=${ESCROW}/dep_manifest_folly_${platform}.txt
   folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
