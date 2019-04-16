@@ -151,9 +151,9 @@ build_cbdep_folly() {
   shopt -s nullglob
   sed -i.bak \
     -e "s/\(git\|https\):\/\/github.com\/couchbasedeps\/\([^ ]*\)/file:\/\/\/home\/couchbase\/escrow\/deps2\/${dep}\/\2/g" \
-    ${TLMDIR}/deps2/packages/CMakeLists.txt \
-    ${TLMDIR}/deps2/packages/*/CMakeLists.txt \
-    ${TLMDIR}/deps2/packages/*/*.sh
+    ${TLMDIR}_dep/deps2/packages/CMakeLists.txt \
+    ${TLMDIR}_dep/deps2/packages/*/CMakeLists.txt \
+    ${TLMDIR}_dep/deps2/packages/*/*.sh
   shopt -u nullglob
   # Fix the depot_tools entry
   if [ ${dep} == 'v8' ]; then
