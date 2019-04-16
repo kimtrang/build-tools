@@ -57,6 +57,7 @@ cp -rp /escrow/deps/.cbdepcache /home/couchbase/.cbdepcache
 if [ ! -d "${TLMDIR}" ]
 then
   cp -aL ${ROOT}/src/tlm ${TLMDIR} > /dev/null 2>&1
+  cp -aL ${ROOT}/src/tlm_dep ${TLMDIR}_dep > /dev/null 2>&1
 fi
 
 #Folly
@@ -134,12 +135,12 @@ build_cbdep_folly() {
 
   if [ -e ${CACHE}/${dep}*${ver}*.tgz ]
   then
-    echo "Dependency ${dep} already built..."
+    echo "Dependency Folly ${dep}*${ver}* already built..."
     return
   fi
 
-  heading "Building dependency ${dep}...."
-  cd ${TLMDIR}
+  heading "Building dependency folly ${dep}...."
+  cd ${TLMDIR}_dep
   git reset --hard
   git clean -dfx
   git checkout ${tlmsha}
@@ -156,14 +157,14 @@ build_cbdep_folly() {
   shopt -u nullglob
   # Fix the depot_tools entry
   if [ ${dep} == 'v8' ]; then
-     sed -i.bak2 -e 's/file:\/\/\/home\/couchbase\/escrow\/deps2\/v8\/depot_tools/file:\/\/\/home\/couchbase\/escrow\/deps2\/depot_tools\/depot_tools.git/g' ${TLMDIR}/deps2/packages/*/*.sh
+     sed -i.bak2 -e 's/file:\/\/\/home\/couchbase\/escrow\/deps2\/v8\/depot_tools/file:\/\/\/home\/couchbase\/escrow\/deps2\/depot_tools\/depot_tools.git/g' ${TLMDIR}_dep/deps2/packages/*/*.sh
   fi
 
   # skip openjdk-rt cbdeps build
   if [ ${dep} == 'openjdk-rt' ]
   then
-    rm -f ${TLMDIR}/deps2/packages/openjdk-rt/dl_rt_jar.cmake
-    touch ${TLMDIR}/deps2/packages/openjdk-rt/dl_rt_jar.cmake
+    rm -f ${TLMDIR}_dep/deps2/packages/openjdk-rt/dl_rt_jar.cmake
+    touch ${TLMDIR}_dep/deps2/packages/openjdk-rt/dl_rt_jar.cmake
   fi
 
   # Invoke the actual build script
@@ -174,7 +175,7 @@ build_cbdep_folly() {
   tarball=$( ls ${TLMDIR}/deps2/packages/build/deps/${dep}/*/*.tgz )
   cp ${tarball} ${CACHE}
   cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
-  rm -rf ${TLMDIR}/deps2/packages/build/deps/${dep}
+  rm -rf ${TLMDIR}_dep/deps2/packages/build/deps/${dep}
 }
 
 build_cbdep_v2() {
@@ -187,7 +188,7 @@ build_cbdep_v2() {
     return
   fi
 
-  heading "Building dependency ${dep}...."
+  heading "Building dependency v2 ${dep}...."
   cd ${TLMDIR}
   cp -rf /escrow/deps/${dep} ${TLMDIR}/deps/packages/
 
@@ -250,7 +251,7 @@ for dep in $( cat ${ROOT}/deps/dep_manifest_folly_v2_${DOCKER_PLATFORM}.txt )
 do
   DEPS=$(echo ${dep} | sed 's/:/ /')
   heading "Building dependency Folly v2: ${DEPS}"
-  build_cbdep_v2 $(echo ${dep} | sed 's/:/ /')  || exit 1
+  build_cbdep_v2_folly $(echo ${dep} | sed 's/:/ /')  || exit 1
 done
 
 # Build Folly all dependencies. The manifest is named after DOCKER_PLATFORM.
