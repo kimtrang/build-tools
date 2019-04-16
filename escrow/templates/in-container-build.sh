@@ -183,7 +183,7 @@ build_cbdep_v2() {
 
   if [ -e ${CACHE}/${dep}*${ver}*.tgz ]
   then
-    echo "Dependency ${dep} already built..."
+    echo "Dependency ${dep}*${ver}*.tgz already built..."
     return
   fi
 
@@ -213,7 +213,7 @@ build_cbdep_v2_folly() {
 
   if [ -e ${CACHE}/${dep}*${ver}*.tgz ]
   then
-    echo "Dependency ${dep} already built..."
+    echo "Dependency folly ${dep}*${ver}*.tgz already built..."
     return
   fi
 
