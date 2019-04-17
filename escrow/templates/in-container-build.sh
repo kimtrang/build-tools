@@ -247,7 +247,7 @@ do
   build_cbdep_v2 $(echo ${dep} | sed 's/:/ /')  || exit 1
 done
 # Build Folly's V2 dependencies first.
-for dep in $( cat ${ROOT}/deps/dep_manifest_folly_v2_${DOCKER_PLATFORM}.txt )
+for dep in $( cat ${ROOT}/deps/dep_v2_manifest_folly_${DOCKER_PLATFORM}.txt )
 do
   DEPS=$(echo ${dep} | sed 's/:/ /')
   heading "Building dependency Folly v2: ${DEPS}"

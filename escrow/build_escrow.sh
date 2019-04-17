@@ -52,6 +52,7 @@ git config --global color.ui false
 repo init -u git://github.com/couchbase/manifest -g all -m ${MANIFEST_FILE}
 repo sync --jobs=6
 
+# Work around: to build dependency of dependency, ex: Folly's
 cp -rp tlm tlm_dep
 
 # Ensure we have git history for 'master' branch of tlm, so we can
@@ -116,30 +117,6 @@ get_cbddeps2_src() {
   fi
 }
 
-get_cbddeps2_src_folly() {
-  local dep=$1
-  local manifest=$2
-
-  cd ${ESCROW}/deps2
-  if [ ! -d ${dep} ]
-  then
-    mkdir ${dep}
-    cd ${dep}
-    heading "Downloading cbdep2 ${dep} ..."
-    repo init -u git://github.com/couchbase/manifest -g all -m cbdeps/${dep}/${manifest}
-    repo sync --jobs=6
-  fi
-}
-
-get_folly_deps() {
-  grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep -v V2| awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${folly_dep_manifest}
-  egrep  -A1 '^if\(WIN32\)' ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep declare | awk -F'(' '{print $2}' | awk '{print $1,$3}' > ${ESCROW}/deps/folly.tmp
-  cat ${ESCROW}/deps/folly.tmp | while read -r fl
-  do
-     echo == "$fl" ==
-     sed -i.bak "/$fl$/d" ${folly_dep_manifest}
-  done
-}
 get_folly_deps_v2() {
   grep declare ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt | grep V2 | awk -F'(' '{print $2}' | awk '{print $1 ":" $4 "-" $6}' > ${folly_dep_v2_manifest}
   echo "folly_dep_v2_manifest:"
@@ -188,10 +165,6 @@ download_cbdep_folly() {
   local ver=$2
   local dep_manifest=$3
 
-  echo "dep: $1"
-  echo "ver: $2"
-  echo "dep_manifest: $dep_manifest"
-
   # skip openjdk-rt cbdeps build
   if [[ ${dep} == 'openjdk-rt' ]]
   then
@@ -235,18 +208,13 @@ do
     grep ${platform} ${ESCROW}/src/tlm/deps/manifest.cmake | grep V2 \
     | awk '{sub(/\(/, "", $2); print $2 ":" $5 "-" $7}'
   )
-  #folly_extra_deps="gflags glog"
-  #gflags_extra_deps="gflags:2.2.1-cb2"
-  #add_packs+=$(echo -e "\n${gflags_extra_deps}")
   echo "add_packs: $add_packs"
   echo "add_packs_v2: $add_packs_v2"
   # get folly's dependencies
   folly_dep_manifest_tmp=${ESCROW}/deps/dep_manifest_folly_${platform}-2.txt
   folly_dep_manifest=${ESCROW}/deps/dep_manifest_folly_${platform}.txt
-  #folly_dep_manifest=${ESCROW}/dep_manifest_folly_${platform}.txt
-  folly_dep_v2_manifest=${ESCROW}/deps/dep_manifest_folly_v2_${platform}.txt
+  folly_dep_v2_manifest=${ESCROW}/deps/dep_v2_manifest_folly_${platform}.txt
   #get_folly_deps
-  sed -i '/^$/d' ${folly_dep_manifest_tmp}
   cat ${folly_dep_manifest_tmp} | while read -r pkg
   do
       download_cbdep_folly $(echo ${pkg} | sed 's/:/ /g') ${folly_dep_manifest}
@@ -257,6 +225,7 @@ do
   # Get cbdeps V2 source
   cat ${folly_dep_v2_manifest} | while read -r pkg
   do
+    # get V2 manifest logic here
     get_cbddeps2_src $(echo ${pkg} | sed 's/:.*/ /g') master.xml
   done
 
@@ -267,6 +236,7 @@ do
   rm -f ${dep_manifest}
   for add_pack in ${add_packs}
   do
+    # get V2 manifest logic here
     download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest}
   done
 
@@ -276,7 +246,7 @@ do
     get_cbddeps2_src $(echo ${add_pack} | sed 's/:.*/ /g') master.xml
   done
 
-  ### Ensure rocksdb and folly built last
+  ### Ensure openssl build first, then rocksdb and folly built last
   egrep openssl ${dep_manifest} > ${ESCROW}/deps/dep_openssl.txt
   grep openssl ${ESCROW}/deps/dep_openssl.txt > ${ESCROW}/deps/dep2.txt
   egrep -v "^rocksdb|^folly" ${dep_manifest} >> ${ESCROW}/deps/dep2.txt
