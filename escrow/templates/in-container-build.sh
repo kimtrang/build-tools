@@ -60,9 +60,6 @@ then
   cp -aL ${ROOT}/src/tlm_dep ${TLMDIR}_dep > /dev/null 2>&1
 fi
 
-#Folly
-cp ${ROOT}/dep_manifest_folly_${DOCKER_PLATFORM}-2.txt ${ROOT}/deps/dep_manifest_folly_${DOCKER_PLATFORM}-2.txt || exit 1
-
 # Pre-populate cbdeps
 heading "Populating cbdeps..."
 case ${PLATFORM} in
@@ -128,55 +125,6 @@ build_cbdep() {
   cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
   rm -rf ${TLMDIR}/deps/packages/build/deps/${dep}
 }
-build_cbdep_folly() {
-  dep=$1
-  tlmsha=$2
-  ver=$3
-
-  if [ -e ${CACHE}/${dep}*${ver}*.tgz ]
-  then
-    echo "Dependency Folly ${dep}*${ver}* already built..."
-    return
-  fi
-
-  heading "Building dependency folly ${dep}...."
-  cd ${TLMDIR}_dep
-  git reset --hard
-  git clean -dfx
-  git checkout ${tlmsha}
-
-  # Tweak the cbdeps build scripts to "download" the source from our local
-  # escrowed copy. Have to re-do this for every dep since we checkout a
-  # potentially different SHA each time above.
-  shopt -s nullglob
-  sed -i.bak \
-    -e "s/\(git\|https\):\/\/github.com\/couchbasedeps\/\([^ ]*\)/file:\/\/\/home\/couchbase\/escrow\/deps2\/${dep}\/\2/g" \
-    ${TLMDIR}_dep/deps/packages/CMakeLists.txt \
-    ${TLMDIR}_dep/deps/packages/*/CMakeLists.txt \
-    ${TLMDIR}_dep/deps/packages/*/*.sh
-  shopt -u nullglob
-  # Fix the depot_tools entry
-  if [ ${dep} == 'v8' ]; then
-     sed -i.bak2 -e 's/file:\/\/\/home\/couchbase\/escrow\/deps2\/v8\/depot_tools/file:\/\/\/home\/couchbase\/escrow\/deps2\/depot_tools\/depot_tools.git/g' ${TLMDIR}_dep/deps/packages/*/*.sh
-  fi
-
-  # skip openjdk-rt cbdeps build
-  if [ ${dep} == 'openjdk-rt' ]
-  then
-    rm -f ${TLMDIR}_dep/deps/packages/openjdk-rt/dl_rt_jar.cmake
-    touch ${TLMDIR}_dep/deps/packages/openjdk-rt/dl_rt_jar.cmake
-  fi
-
-  # Invoke the actual build script
-  PACKAGE=${dep} deps/scripts/build-one-cbdep
-
-  echo
-  echo "Copying dependency ${dep} to local cbdeps cache..."
-  tarball=$( ls ${TLMDIR}_dep/deps/packages/build/deps/${dep}/*/*.tgz )
-  cp ${tarball} ${CACHE}
-  cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
-  rm -rf ${TLMDIR}_dep/deps/packages/build/deps/${dep}
-}
 
 build_cbdep_v2() {
   dep=$1
@@ -208,36 +156,6 @@ build_cbdep_v2() {
   cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
   rm -rf ${TLMDIR}/deps/packages/${dep}
 }
-build_cbdep_v2_folly() {
-  dep=$1
-  ver=$2
-
-  if [ -e ${CACHE}/${dep}*${ver}*.tgz ]
-  then
-    echo "Dependency folly ${dep}*${ver}*.tgz already built..."
-    return
-  fi
-
-  heading "Building dependency ${dep}...."
-  cd ${TLMDIR}_dep
-  cp -rf /escrow/deps2/${dep} ${TLMDIR}_dep/deps/packages/
-
-  # Invoke the actual build script
-  pushd ${TLMDIR}_dep/deps/packages/${dep} && \
-  export WORKSPACE=`pwd` && \
-  export PRODUCT=${dep} && \
-  export VERSION=$(egrep VERSION /home/couchbase/escrow/deps2/${dep}/.repo/manifest.xml  | awk '{ for ( n=1; n<=NF; n++ ) if($n ~ "value=") print $n }'  | cut -d'=' -f2  | cut -d'"' -f2) && \
-  export BLD_NUM=$(echo $ver | awk -F'-' '{print $2}') && \
-  export LOCAL_BUILD=true && \
-  build-tools/cbdeps/scripts/build-one-cbdep
-
-  echo
-  echo "Copying dependency ${dep} to local cbdeps cache..."
-  tarball=$( ls ${TLMDIR}_dep/deps/packages/${dep}/*/*/*/*/*.tgz )
-  cp ${tarball} ${CACHE}
-  cp ${tarball/tgz/md5} ${CACHE}/$( basename ${tarball} ).md5
-  rm -rf ${TLMDIR}_dep/deps/packages/${dep}
-}
 
 # Build V2 dependencies first.
 for dep in $( cat ${ROOT}/deps/dep_v2_manifest_${DOCKER_PLATFORM}.txt )
@@ -246,21 +164,7 @@ do
   heading "Building dependency v2: ${DEPS}"
   build_cbdep_v2 $(echo ${dep} | sed 's/:/ /')  || exit 1
 done
-# Build Folly's V2 dependencies first.
-for dep in $( cat ${ROOT}/deps/dep_v2_manifest_folly_${DOCKER_PLATFORM}.txt )
-do
-  DEPS=$(echo ${dep} | sed 's/:/ /')
-  heading "Building dependency Folly v2: ${DEPS}"
-  build_cbdep_v2_folly $(echo ${dep} | sed 's/:/ /')  || exit 1
-done
 
-# Build Folly all dependencies. The manifest is named after DOCKER_PLATFORM.
-for dep in $( cat ${ROOT}/deps/dep_manifest_folly_${DOCKER_PLATFORM}.txt )
-do
-  DEPS=$(echo ${dep} | sed 's/:/ /g')
-  heading "Building Folly dependency: ${DEPS}"
-  build_cbdep_folly $(echo ${dep} | sed 's/:/ /g')  || exit 1
-done
 # Build all dependencies. The manifest is named after DOCKER_PLATFORM.
 for dep in $( cat ${ROOT}/deps/dep_manifest_${DOCKER_PLATFORM}.txt )
 do
