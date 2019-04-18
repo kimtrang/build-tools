@@ -168,6 +168,12 @@ do
     download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest}
   done
 
+  # sort -u to remove redundant cbdeps
+  cat ${dep_manifest} | sort -u > dep_manifest.tmp
+  mv dep_manifest.tmp ${dep_manifest}
+  cat ${dep_v2_manifest} | sort -u > dep_v2_manifest.tmp
+  mv dep_v2_manifest.tmp ${dep_v2_manifest}
+
   ### Ensure openssl build first, then rocksdb and folly built last
   egrep openssl ${dep_manifest} > ${ESCROW}/deps/dep_openssl.txt
   grep openssl ${ESCROW}/deps/dep_openssl.txt > ${ESCROW}/deps/dep2.txt
