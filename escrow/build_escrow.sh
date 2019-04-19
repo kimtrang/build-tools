@@ -169,8 +169,8 @@ do
   get_build_manifests_repo
   for add_pack in ${add_packs_v2}
   do
-    _dep=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $1}')
-    _ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}')
+    _dep=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $1}') # zlib
+    _ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}' | sed 's/-/ /' | awk '{print $1}') # 1.2.11
     #_bldnum=$(echo ${add_pack} | perl -nle '/^(.*?)-(.*)?$/ && print $2')
     pushd ${ESCROW}/build-manifests/cbdeps
     _sha=$(git log --pretty=oneline ${_dep}/${_ver}/${_ver}.xml  |grep ${_dep}-${_ver} | awk '{print $1}')
