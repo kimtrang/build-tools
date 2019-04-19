@@ -173,7 +173,7 @@ do
     ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}' | sed 's/-/ /' | awk '{print $1}') # 1.2.11
     bldnum=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}' | sed 's/-/ /' | awk '{print $2}')
     pushd ${ESCROW}/build-manifests/cbdeps
-    sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${dep}-${ver}-${bldnum} | awk '{print $1}')
+    sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${ver}-${bldnum} | awk '{print $1}')
     echo "dep: $dep == ver: $ver == sha: $sha == manifest: ${dep}/${ver}/${ver}.xml"
     get_cbddeps2_src ${dep} ${ver} ${dep}/${ver}/${ver}.xml ${sha}
   done
