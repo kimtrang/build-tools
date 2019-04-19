@@ -139,7 +139,7 @@ download_cbdep() {
 }
 
 #Folly temp hack
-cp ${ROOT}/Folly_CMakeLists.txt ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt
+#cp ${ROOT}/Folly_CMakeLists.txt ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt
 
 # Determine set of cbdeps used by this build, per platform.
 for platform in ${PLATFORMS}
