@@ -77,17 +77,26 @@ get_cbdep_git() {
   fi
 }
 
+get_build_manifests_repo() {
+  cd ${ESCROW}
+  heading "Downloading build-manifests ..."
+  git clone git://github.com/couchbase/build-manifests.git
+
+}
+
 get_cbddeps2_src() {
   local dep=$1
-  local manifest=$2
+  local ver=$2
+  local manifest=$3
+  local sha=$4
 
   cd ${ESCROW}/deps
   if [ ! -d ${dep} ]
   then
     mkdir ${dep}
     cd ${dep}
-    heading "Downloading cbdep2 ${dep} ..."
-    repo init -u git://github.com/couchbase/manifest -g all -m cbdeps/${dep}/${manifest}
+    heading "Downloading cbdep2 ${dep}/${ver}/${manifest} at ${sha} ..."
+    repo init -u git://github.com/couchbase/build-manifests -g all -m cbdeps/${dep}/${ver}/${manifest} -b ${sha}
     repo sync --jobs=6
   fi
 }
@@ -157,14 +166,20 @@ do
   rm -f ${dep_manifest}
 
   # Get cbdeps V2 source first
+  get_build_manifests_repo
   for add_pack in ${add_packs_v2}
   do
-    get_cbddeps2_src $(echo ${add_pack} | sed 's/:.*/ /g') master.xml
+    local dep=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $1}')
+    local ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}')
+    local bldnum=$(echo ${add_pack} | perl -nle '/^(.*?)-(.*)?$/ && print $2')
+    pushd ${ESCROW}/build-manifests/cbdeps
+    sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${dep}-${ver} | awk '{print $1}')
+    get_cbddeps2_src $dep $ver ${dep}/${ver}/${ver}.xml $sha
   done
-  # Get cbdep after V2
+
+  # Get cbdep after V2 source
   for add_pack in ${add_packs}
   do
-    # get V2 manifest logic here
     download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest}
   done
 

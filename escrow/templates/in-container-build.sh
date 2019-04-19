@@ -136,15 +136,16 @@ build_cbdep_v2() {
     return
   fi
 
-  heading "Building dependency v2 ${dep}...."
+  heading "Building dependency v2 ${dep} - ${ver} ...."
   cd ${TLMDIR}
+  rm -rf ${TLMDIR}/deps/packages/${dep}
   cp -rf /escrow/deps/${dep} ${TLMDIR}/deps/packages/
 
   # Invoke the actual build script
   pushd ${TLMDIR}/deps/packages/${dep} && \
   export WORKSPACE=`pwd` && \
   export PRODUCT=${dep} && \
-  export VERSION=$(egrep VERSION /home/couchbase/escrow/deps/${dep}/.repo/manifest.xml  | awk '{ for ( n=1; n<=NF; n++ ) if($n ~ "value=") print $n }'  | cut -d'=' -f2  | cut -d'"' -f2) && \
+  export VERSION=$(echo $ver | awk -F'-' '{print $1}') && \
   export BLD_NUM=$(echo $ver | awk -F'-' '{print $2}') && \
   export LOCAL_BUILD=true && \
   build-tools/cbdeps/scripts/build-one-cbdep
