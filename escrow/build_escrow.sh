@@ -173,8 +173,8 @@ do
     _ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}')
     #_bldnum=$(echo ${add_pack} | perl -nle '/^(.*?)-(.*)?$/ && print $2')
     pushd ${ESCROW}/build-manifests/cbdeps
-    sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${_dep}-${_ver} | awk '{print $1}')
-    get_cbddeps2_src $dep $ver ${_dep}/${_ver}/${_ver}.xml $sha
+    _sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${_dep}-${_ver} | awk '{print $1}')
+    get_cbddeps2_src ${_dep} ${_ver} ${_dep}/${_ver}/${_ver}.xml ${_sha}
   done
 
   # Get cbdep after V2 source
