@@ -169,12 +169,12 @@ do
   get_build_manifests_repo
   for add_pack in ${add_packs_v2}
   do
-    local dep=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $1}')
-    local ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}')
-    local bldnum=$(echo ${add_pack} | perl -nle '/^(.*?)-(.*)?$/ && print $2')
+    _dep=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $1}')
+    _ver=$(echo ${add_pack} | sed 's/:/ /g' | awk '{print $2}')
+    #_bldnum=$(echo ${add_pack} | perl -nle '/^(.*?)-(.*)?$/ && print $2')
     pushd ${ESCROW}/build-manifests/cbdeps
-    sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${dep}-${ver} | awk '{print $1}')
-    get_cbddeps2_src $dep $ver ${dep}/${ver}/${ver}.xml $sha
+    sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${_dep}-${_ver} | awk '{print $1}')
+    get_cbddeps2_src $dep $ver ${_dep}/${_ver}/${_ver}.xml $sha
   done
 
   # Get cbdep after V2 source
