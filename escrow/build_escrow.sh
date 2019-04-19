@@ -95,8 +95,8 @@ get_cbddeps2_src() {
   then
     mkdir ${dep}
     cd ${dep}
-    heading "Downloading cbdep2 ${dep}/${ver}/${manifest} at ${sha} ..."
-    repo init -u git://github.com/couchbase/build-manifests -g all -m cbdeps/${dep}/${ver}/${manifest} -b ${sha}
+    heading "Downloading cbdep2 ${manifest} at ${sha} ..."
+    repo init -u git://github.com/couchbase/build-manifests -g all -m cbdeps/${manifest} -b ${sha}
     repo sync --jobs=6
   fi
 }
