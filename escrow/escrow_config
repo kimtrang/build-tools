@@ -9,12 +9,8 @@ MANIFEST_FILE=couchbase-server/mad-hatter.xml
 if [[ ${PLATFORM} == 'centos7' ]]
 then
     IMAGES="couchbasebuild/server-centos7-build:20190310"
-elif [[ ${PLATFORM} == 'ubuntu18' ]]
-then
-    IMAGES="couchbasebuild/server-ubuntu18-build:20190310"
 else
-    echo "Unsupport with weekly escrow build!"
-    exit 1
+    IMAGES="couchbasebuild/server-ubuntu18-build:20190310"
 fi
 
 : <<'COMMENT'
