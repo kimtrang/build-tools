@@ -57,7 +57,6 @@ cp -rp /escrow/deps/.cbdepcache /home/couchbase/.cbdepcache
 if [ ! -d "${TLMDIR}" ]
 then
   cp -aL ${ROOT}/src/tlm ${TLMDIR} > /dev/null 2>&1
-  cp -aL ${ROOT}/src/tlm_dep ${TLMDIR}_dep > /dev/null 2>&1
 fi
 
 # Pre-populate cbdeps
