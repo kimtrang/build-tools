@@ -139,9 +139,6 @@ download_cbdep() {
   echo "${dep}:${tlmsha}:${ver}" >> ${dep_manifest}
 }
 
-#Folly temp hack
-#cp ${ROOT}/Folly_CMakeLists.txt ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt
-
 # Determine set of cbdeps used by this build, per platform.
 for platform in ${PLATFORMS}
 do
@@ -234,7 +231,7 @@ done
 
 heading "Copying build scripts into escrow..."
 cd ${ROOT}
-cp -a escrow_config Folly_CMakeLists.txt templates/* ${ESCROW}
+cp -a escrow_config templates/* ${ESCROW}
 perl -pi -e "s/\@\@VERSION\@\@/${VERSION}/g; s/\@\@PLATFORMS\@\@/${PLATFORMS}/g" \
   ${ESCROW}/README.md ${ESCROW}/build-couchbase-server-from-escrow.sh
 
