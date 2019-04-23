@@ -191,8 +191,7 @@ do
   mv dep_v2_manifest.tmp ${dep_v2_manifest}
 
   ### Ensure openssl build first, then rocksdb and folly built last
-  egrep openssl ${dep_manifest} > ${ESCROW}/deps/dep_openssl.txt
-  grep openssl ${ESCROW}/deps/dep_openssl.txt > ${ESCROW}/deps/dep2.txt
+  egrep openssl ${dep_manifest} > ${ESCROW}/deps/dep2.txt
   egrep -v "^rocksdb|^folly" ${dep_manifest} >> ${ESCROW}/deps/dep2.txt
   egrep "^rocksdb|^folly" ${dep_manifest} >> ${ESCROW}/deps/dep2.txt
   mv ${ESCROW}/deps/dep2.txt ${dep_manifest}
