@@ -79,6 +79,7 @@ get_cbdep_git() {
 
 get_build_manifests_repo() {
   cd ${ESCROW}
+  rm -rf build-manifests
   heading "Downloading build-manifests ..."
   git clone git://github.com/couchbase/build-manifests.git
 
@@ -163,7 +164,7 @@ do
   dep_manifest=${ESCROW}/deps/dep_manifest_${platform}.txt
   dep_v2_manifest=${ESCROW}/deps/dep_v2_manifest_${platform}.txt
   echo "$add_packs_v2" > ${dep_v2_manifest}
-  rm -f ${dep_manifest}
+  rm -f ${dep_manifest} ${dep_v2_manifest}
 
   # Get cbdeps V2 source first
   get_build_manifests_repo
