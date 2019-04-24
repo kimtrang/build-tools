@@ -6,8 +6,7 @@ PRODUCT=couchbase-server
 MANIFEST_FILE=couchbase-server/mad-hatter.xml
 
 # Docker images
-IMAGES="couchbasebuild/server-ubuntu18-build:20190310
-couchbasebuild/server-amzn2-build:20190310
+IMAGES="couchbasebuild/server-amzn2-build:20190310
 couchbasebuild/server-centos7-build:20190310
 couchbasebuild/server-debian8-build:20190310
 couchbasebuild/server-debian9-build:20190310
