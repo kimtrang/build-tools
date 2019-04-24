@@ -127,11 +127,6 @@ download_cbdep() {
       -- deps/packages/CMakeLists.txt \
     | awk -F: '{ print $1 }' | head -1
   )
-  echo "tlmsha: cd ${ESCROW}/src/tlm && git grep -c \"_ADD_DEP_PACKAGE(${dep} ${version} .* ${cbnum})\" \
-		git grep -c \"_ADD_DEP_PACKAGE(${dep} ${version} .* ${cbnum})\" \
-		-- deps/packages/CMakeLists.txt \
-		| awk -F: '{ print $1 }' | head -1"
-
   if [ -z "${tlmsha}" ]; then
     echo "ERROR: couldn't find tlm SHA for ${dep} ${version} @${cbnum}@"
     exit 1
@@ -146,7 +141,7 @@ do
     grep ${platform} ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt  |grep -v V2 \
     | awk '{sub(/\(/, "", $2); print $2 ":" $4}';
     grep ${platform} ${ESCROW}/src/tlm/deps/manifest.cmake |grep -v V2 \
-    | awk '{sub(/\(/, "", $2); print $2 ":" $4}';
+    | awk '{sub(/\(/, "", $2); print $2 ":" $4}'
   )
   add_packs_v2=$(
     grep ${platform} ${ESCROW}/src/tlm/deps/packages/folly/CMakeLists.txt  | grep V2 \
@@ -160,8 +155,8 @@ do
   # Download and keep a record of all third-party deps
   dep_manifest=${ESCROW}/deps/dep_manifest_${platform}.txt
   dep_v2_manifest=${ESCROW}/deps/dep_v2_manifest_${platform}.txt
-  echo "$add_packs_v2" > ${dep_v2_manifest}
   rm -f ${dep_manifest} ${dep_v2_manifest}
+  echo "$add_packs_v2" > ${dep_v2_manifest}
 
   # Get cbdeps V2 source first
   get_build_manifests_repo
