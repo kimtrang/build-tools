@@ -209,7 +209,7 @@ ${ESCROW}/deps/cbdep-${cbdep_ver_latest}-linux  install -n ${ANALYTICS_JARS} ${A
 ${ESCROW}/deps/cbdep-${cbdep_ver_latest}-linux  install -n ${OPENJDK_NAME} ${OPENJDK_VERSION}
 cp -rp /home/couchbase/.cbdepcache ${ESCROW}/deps/.cbdepcache
 mkdir -p ${ESCROW}/deps/.cbdepscache
-${ESCROW}/deps/cbdep-${cbdep_ver_latest}-linux  install -d ${ESCROW}/deps/.cbdepscache ${OPENJDK_RT} ${OPENJDK_RT_VERSION}
+#${ESCROW}/deps/cbdep-${cbdep_ver_latest}-linux  install -d ${ESCROW}/deps/.cbdepscache ${OPENJDK_RT} ${OPENJDK_RT_VERSION}
 
 heading "Downloading Go installers..."
 mkdir -p ${ESCROW}/golang
