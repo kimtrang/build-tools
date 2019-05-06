@@ -45,6 +45,7 @@ find . -type d -name testing -print0 | xargs -0 rm -rf
 find . -type d -name \*tests -print0 | xargs -0 rm -rf
 find . -type d -name data -print0 | xargs -0 rm -rf
 find . -type d -name docs -print0 | xargs -0 rm -rf
+find . -type d -name doc -print0 | xargs -0 rm -rf
 find . -type d -name examples -print0 | xargs -0 rm -rf
 find . -type d -name samples -print0 | xargs -0 rm -rf
 find . -type d -name benchmarks -print0 | xargs -0 rm -rf
@@ -52,6 +53,8 @@ find . -type d -name benchmarks -print0 | xargs -0 rm -rf
 # Remove extra build tools for V2 deps
 find . -type d -name cbbuild -or -name build-tools | xargs rm -rf
 
-# Run required tools
+# Remove all example and test* directory
+find . -type d -name example -or -name test* | xargs rm -rf
 
-for i in `find . -type f -name package.json`; do pushd `dirname $i`; npm install; ls -la node_modules; popd; done
+# Run required tools
+#for i in `find . -type f -name package.json`; do pushd `dirname $i`; npm install; ls -la node_modules; popd; done
