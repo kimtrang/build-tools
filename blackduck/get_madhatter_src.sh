@@ -15,15 +15,8 @@ for i in asio fusion geometry hana phoenix spirit typeof; do
 done
 rm -rf boost/boost-dist/doc
 
-# tree-sitter, gyp, ngyp
-rm -rf breakpad/src/tools/gyp
-rm -rf v8/tools/gyp
-rm -rf v8/build
-rm -rf icu4c/win_binary
-(pushd v8 && rm -rf third_party/binutils/ third_party/icu/ third_party/llvm-build/ buildtools/ test && popd)
-
 # Prune things to fit in our 1GB source code limit
-find . -type d -name .git -or -name .repo -print0 | xargs -0 rm -rf
+find . -type d -name .git -or -name .repo | xargs rm -rf
 
 # cleanup unwanted stuff
 rm -rf testrunner
