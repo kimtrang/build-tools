@@ -50,5 +50,5 @@ find . -type d -name cbbuild -or -name build-tools | xargs rm -rf
 
 # Run required tools
 
-for i in `find . -type f -name package.json`; do pushd `dirname $i`; npm install; ls -la node_modules; popd; done
+#for i in `find . -type f -name package.json`; do pushd `dirname $i`; npm install; ls -la node_modules; popd; done
 
