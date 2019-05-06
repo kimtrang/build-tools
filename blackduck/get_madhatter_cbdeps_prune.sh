@@ -20,7 +20,7 @@ rm -rf icu4c/win_binary
 (pushd v8 && rm -rf third_party/binutils/ third_party/icu/ third_party/llvm-build/ buildtools/ test && popd)
 
 # Prune things to fit in our 1GB source code limit
-find . -type d -name .git -or -name .repo | xargs -0 rm -rf
+find . -type d -name .git -or -name .repo | xargs rm -rf
 
 # cleanup unwanted stuff
 rm -rf testrunner
