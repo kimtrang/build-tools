@@ -52,7 +52,14 @@ find . -type d -name cbbuild -or -name build-tools | xargs rm -rf
 find . -type d -name example -or -name test* | xargs rm -rf
 
 # Remove all msvc, vcs* window projects
-WIN='example *msvc* *vcproj* *vcxproj* visual vstudio dot_net_example example csharp'
+WIN='example *msvc* *vcproj* *vcxproj* visual vstudio dot_net_example example csharp vc7ide'
 for windir in ${WIN}; do
 	find . -type d -name "$windir" | xargs rm -rf
 done
+rm -rf ./boost/boost-dist/libs/coroutine/src/windows
+rm -rf ./boost/boost-dist/libs/coroutine/performance
+rm -rf ./boost/boost-dist/libs/numeric/ublas/IDEs
+rm -rf ./v8/gypfiles/win
+rm -rf ./v8/src/debug
+rm -rf ./grpc/src/csharp
+rm -rf ./grpc/vsprojects
