@@ -56,5 +56,8 @@ find . -type d -name cbbuild -or -name build-tools | xargs rm -rf
 # Remove all example and test* directory
 find . -type d -name example -or -name test* | xargs rm -rf
 
-# Run required tools
-#for i in `find . -type f -name package.json`; do pushd `dirname $i`; npm install; ls -la node_modules; popd; done
+# Remove all msvc, vcs* window projects
+WIN='example *msvc* *vcproj*'
+for windir in ${WIN}; do
+	find . -type d -name "$windir" | xargs rm -rf
+done
