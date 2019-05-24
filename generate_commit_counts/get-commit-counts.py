@@ -20,38 +20,62 @@ from pygerrit2 import GerritRestAPI, HTTPBasicAuth
 
 from pprint import pprint
 
-DATE_RANGE = 90
-
 
 class ConfigParse:
     def __init__(self, args):
-        self.projects_config = dict()
+        self.project_gerrit_config = list()
+        self.project_git_config = defaultdict()
         self.conf = args.conf
         self.gerrit_config = args.gerrit_config
+        self.git_config = args.git_config
         self.DATE_RANGE = int(args.DATE_RANGE)
 
     def read_projects_config(self):
         """
         Read projects config file to determine Gerrit or Git users info.
-        generate dictional of commiter type (Gerrit or Git) and list of Gerrit's email and Git's name, e.g.:
-            'gerrit-users': ['user@couchbase.com', 'user2@couchbase.com'], ...
-            'git-users': ['Git name', 'Git Name2'], ...
+        Return list of Gerrit users (me@couchbase.com)
+        Return dictionary of Git users (git_login_id:full_name)
         """
-
         config = configparser.ConfigParser(allow_no_value=True)
         if config.read(self.conf):
-            commit_user_group = config.sections()
-        else:
-            sys.exit(f'Error! Cannot parse {self.conf} file!')
+            for section_name in config.sections():
+                if section_name == 'gerrit-users':
+                    self.project_gerrit_config = config.options(section_name)
+                elif section_name == 'git-users':
+                    for gid, gname in config.items(section_name):
+                        self.project_git_config[gid] = gname
+        return self.project_gerrit_config, self.project_git_config
 
-        for c_user in commit_user_group:
-            project_info = config.items(c_user)
-            proj_names = [t[0] for t in project_info]
-            self.projects_config[c_user] = proj_names
+    def read_git_config(self):
+        """
+            Read Git config and return git_url, user and passwd
+        """
+        git_config = configparser.ConfigParser()
+        git_config.read(self.git_config)
 
-        return self.projects_config
+        if 'main' not in git_config.sections():
+            print(
+                'Invalid or unable to read config file "{}"'.format(
+                    self.git_config
+                )
+            )
+            sys.exit(1)
+        try:
+            git_url = git_config.get('main', 'git_url')
+            user = git_config.get('main', 'username')
+            passwd = git_config.get('main', 'password')
+        except configparser.NoOptionError:
+            print(
+                'One of the options is missing from the config file: '
+                'git_url, username, password.  Aborting...'
+            )
+            sys.exit(1)
+        return git_url, user, passwd
 
     def read_gerrit_config(self):
+        """
+            Read Gerrit config and return Gerrit Rest object
+        """
         gerrit_config = configparser.ConfigParser()
         gerrit_config.read(self.gerrit_config)
 
@@ -82,23 +106,10 @@ class ConfigParse:
 
 class GenerateGitCommits(ConfigParse):
 
-    def __init__(self, projects_config):
-        self.projects_config = projects_config
-        # self.git_user_names = list()
+    def __init__(self, project_git_config):
+        self.project_git_config = project_git_config
+        pprint(project_git_config)
         self.gitrepos = {'mobile-testkit': 'couchbaselabs'}
-        self.api_url = "https://api.github.com"
-        self.username = 'kimtrang'
-        self.password = '123Kmn123!'
-        self.json_object = None
-        self.input_time = None
-        self.AUTHORS = {'17035128': 'Sridevi Saragadam', '18100038': 'Hemant Rajput', '46462883': 'Eunice Huang'}
-
-    # def get_git_user_account(self):
-    #    for g_group, gitname in self.projects_config.items():
-    #        if g_group == 'git-users':
-    #            for name in gitnames:
-    #                self.git_user_name.append(name)
-    #    return self.git_user_names
 
     def send_request(self, post_data=None):
         if post_data is not None:
@@ -139,81 +150,99 @@ class GenerateGitCommits(ConfigParse):
         return input_date
 
     def get_git_login_id(self, name):
-        for git_author_id, git_author_name in self.AUTHORS.items():
+        for git_author_id, git_author_name in self.project_git_config.items():
             if name in git_author_name:
                 return git_author_id
 
-    def get_git_commits_count(self):
+    def generate_gitid_data(self, gid, item, data_dict):
+        if gid in data_dict:
+            data_dict[gid].append(item)
+        else:
+            data_dict[gid] = [item]
+        return data_dict
+
+    def get_git_commits_count(self, git_url, git_user, git_passwd, date_range):
         for repo in self.gitrepos:
+            self.api_url = git_url
+            self.username = git_user
+            self.password = git_passwd
             self.git_org = self.gitrepos[repo]
             self.git_repo = repo
-            #self.git_unknown_users = defaultdict()
+            self.git_unknown_users = defaultdict()
 
             data = self.send_request()
 
             currdate = datetime.datetime.utcnow()
-
-            #git_author_ids = self.AUTHORS.keys()
-            git_author_names = self.AUTHORS.values()
-
-            print(f'Date Range - {DATE_RANGE}')
+            print(f'Date Range - {date_range}')
             print(f'From Date (UTC): {currdate}')
-            print(f'To Date (UCT): {(currdate - timedelta(DATE_RANGE))}')
+            print(f'To Date (UCT): {(currdate - timedelta(date_range))}')
 
-            for git_author_id, git_author_name in self.AUTHORS.items():
-                count = 0
-                repos = list()
-                for i in data:
-                    if i["commit"]["author"]["date"].startswith('2019'):
-                        create_date = self.get_time(i["commit"]["author"]["date"])
-                        expire_days = int((currdate - create_date).days)
-                        # print(f'Delta: {expire_days}')
-                        if expire_days <= DATE_RANGE:
-                            if i["author"] != None:  # cover no commit's author info case
-                                git_creds = str(i["author"]["id"])
-                            else:  # default to match their name instead of login id
-                                g_name = i["commit"]["author"]["name"]
-                                # if g_name in git_author_names:
-                                #git_creds = git_author_id
-                                git_creds = self.get_git_login_id(g_name)
-
-                            if git_creds == git_author_id:
-                                count = count + 1
-                                strip_repo_url = re.sub(r"https:\/\/github\.com\/(.*)\/commit.*$", r"\1", i["html_url"])
-                                repos.append(strip_repo_url) if strip_repo_url not in repos else repos
-                            # else:
-                            #    self.git_unknown_users[i["commit"]["author"]["email"]] = i["commit"]["author"]["name"]
+            commits_counts = defaultdict()
+            commits_repos = defaultdict(set)
+            commits_message = defaultdict()
+            repos = list()
+            # print(f'Total SHA {len(data)}')
+            print()
+            for i in data:
+                if i["commit"]["author"]["date"].startswith('2019'):
+                    # print(f'SHA: {i["sha"]}')
+                    create_date = self.get_time(i["commit"]["author"]["date"])
+                    expire_days = (currdate - create_date).days
+                    # print(f'Delta: {expire_days}')
+                    if expire_days <= date_range:
+                        if i["author"] != None:  # cover no commit's author info case
+                            git_creds = str(i["author"]["id"])
+                        elif i["commit"]["author"]["name"]:
+                            g_name = i["commit"]["author"]["name"]
+                            git_creds = self.get_git_login_id(g_name)
                         else:
-                            break
-                print()
+                            print(f'Cannot find valid author for this commit: {i["sha"]} - {i["html_url"]}')
+                            git_unknown_users[i["sha"]].add(i["html_url"])
+
+                        self.generate_gitid_data(git_creds, i["sha"], commits_counts)
+                        strip_repo_url = re.sub(r"https:\/\/github\.com\/(.*)\/commit.*$", r"\1", i["html_url"])
+                        repos.append(strip_repo_url) if strip_repo_url not in repos else repos
+                        commits_repos[git_creds].add(strip_repo_url)  # this is check if other repos
+                        self.generate_gitid_data(git_creds, i["sha"] + ' -- ' + i["commit"]["message"], commits_message)
+
+                    else:
+                        break
+
+            for git_author_id, git_author_name in self.project_git_config.items():
+                if git_author_id in commits_counts.keys():
+                    total_commits = len(commits_counts[git_author_id])
+                    commit_messages = commits_message[git_author_id]
+                    repos = commits_repos[git_author_id]
+                else:
+                    total_commits = 0
+                    commit_messages = ''
+                    repos = ''
+
                 print(f'User: {git_author_name}')
-                print(f'Total Commit(s): {count}')
-                print('Repos(s): {}'.format(', '.join(repos)))
+                print(f'Total Commit(s): {total_commits}')
+                print('Repos(s): ' + '\n'.join(map(str, repos)))
+                print('Commit Messages:')
+                print('\n'.join(map(str, commit_messages)))
+                print()
                 print()
 
-                # if self.git_unknown_users:
-                #    print()
-                #    print('Found unknown commits:')
-                #    print(f'Details: {self.git_unknown_users}')
-                #    print()
+            if self.git_unknown_users:
+                print()
+                print('WARNING!  Found unknown commits:')
+                print(f'Details: {self.git_unknown_users}')
+                print()
+                sys.exit(1)
 
-    def git_commit_caller(self):
+    def git_commit_caller(self, git_url, api_user, api_passwd, date_range):
         """ Driver function calls for the Git generate commits program"""
-        self.get_git_commits_count()
+        self.get_git_commits_count(git_url, api_user, api_passwd, date_range)
 
 
 class GenerateGerritCommits(ConfigParse):
-    def __init__(self, projects_config):
-        self.gerrit_user_emails = list()
+    def __init__(self, project_gerrit_config):
+        self.gerrit_user_emails = project_gerrit_config
         self.gerrit_user_accounts = defaultdict()
-        self.projects_config = projects_config
-
-    def get_gerrit_user_account(self):
-        for c_group, c_emails in self.projects_config.items():
-            if c_group == 'gerrit-users':
-                for email in c_emails:
-                    self.gerrit_user_emails.append(email)
-        return self.gerrit_user_emails
+        self.project_gerrit_config = project_gerrit_config
 
     def generate_gerrit_user_name(self, gerrit_rest_obj):
         # Need to use gerrit api to get user account
@@ -234,7 +263,7 @@ class GenerateGerritCommits(ConfigParse):
             except RequestException as err:
                 print("Error: %s", str(err))
                 sys.exit(1)
-                #logger.error("Error: %s", str(err))
+                # logger.error("Error: %s", str(err))
         return self.gerrit_user_accounts
 
     def get_time(self, input_time):
@@ -262,6 +291,7 @@ class GenerateGerritCommits(ConfigParse):
                 # logger.info("%d changes", len(changes))
                 count = 0
                 repos = list()
+                commit_subjects = list()
                 for change in changes:
                     # print(f"change_id: {change['change_id']}")
                     # print(f"Date created: {change['created']}")
@@ -271,44 +301,22 @@ class GenerateGerritCommits(ConfigParse):
                         expire_days = int((currdate - create_date).days)
                         if expire_days <= date_range:
                             repos.append(change['project']) if change['project'] not in repos else repos
+                            message = change['change_id'] + ' -- ' + change['subject']
+                            commit_subjects.append(message)
                             count = count + 1
                         else:
                             break
                 print(f'User: {self.gerrit_user_accounts[u_email]}')
                 print(f'Total Commit(s): {count}')
                 print('Repos(s): {}'.format(', '.join(repos)))
+                print('Commit Messages:')
+                print('\n'.join(map(str, commit_subjects)))
                 print()
             except RequestException as err:
                 logger.error("Error: %s", str(err))
 
-    '''def load_json_data(self):
-        currdate = datetime.datetime.utcnow()
-        print(f'currdate: {currdate}')
-
-        for u_email in self.gerrit_user_accounts:
-            fl = 'data/' + u_email + '.json'
-            with open(fl) as f:
-                data = json.loads(f.read())
-
-            count = 0
-            repos = list()
-            for i in data:
-                if i['created'].startswith('2019'):
-                    create_date = self.get_time(i['created'])
-                    expire_days = int((currdate - create_date).days)
-                    # print(f'Delta: {expire_days}')
-                    if expire_days <= DATE_RANGE:
-                        repos.append(i['project']) if i['project'] not in repos else repos
-                        count = count + 1
-                    else:
-                        break
-            print(f'User: {self.gerrit_user_accounts[u_email]}')
-            print(f'Total Commit(s): {count}')
-            print('Repos(s): {}'.format(', '.join(repos)))
-            print()'''
-
     def gerrit_commit_caller(self, gerrit_auth, gerrit_rest_object, date_range):
-        self.get_gerrit_user_account()
+        # self.get_gerrit_user_account()
         self.generate_gerrit_user_name(gerrit_rest_object)
         self.get_gerrit_rest_data(gerrit_auth, gerrit_rest_object, date_range)
 
@@ -318,12 +326,15 @@ def parse_args():
     parser.add_argument('--conf',
                         help="Project config category for each private repos",
                         default='projects.ini')
-    parser.add_argument('-c', '--gerrit-config', dest='gerrit_config',
+    parser.add_argument('-gerrit-config', '--gerrit-config', dest='gerrit_config',
                         help='Configuration file for Gerrit',
                         default='patch_via_gerrit.ini')
+    parser.add_argument('-git-config', '--git-config', dest='git_config',
+                        help='Configuration file for Git API',
+                        default='git_committer.ini')
     parser.add_argument('-d', '--date-range', dest='DATE_RANGE',
                         help='Date range to query',
-                        default='90')
+                        default='7')
     args = parser.parse_args()
     return args
 
@@ -336,19 +347,20 @@ def main():
 
     # Parsing Config file
     configObj = ConfigParse(parse_args())
-    configs_dict = configObj.read_projects_config()
+    gerrit_user_emails, git_users = configObj.read_projects_config()
     date_range = configObj.DATE_RANGE
 
-    # Gerrit
+    # Gerrit # Need to fix projects_config
     print('GERRIT Count')
     gerrit_auth, gerrit_rest = configObj.read_gerrit_config()
-    gerritObj = GenerateGerritCommits(configs_dict)
+    gerritObj = GenerateGerritCommits(gerrit_user_emails)
     gerritObj.gerrit_commit_caller(gerrit_auth, gerrit_rest, date_range)
 
     # Git
     print('GIT Count')
-    gitObj = GenerateGitCommits(configs_dict)
-    gitObj.git_commit_caller()
+    git_url, api_user, api_passwd = configObj.read_git_config()
+    gitObj = GenerateGitCommits(git_users)
+    gitObj.git_commit_caller(git_url, api_user, api_passwd, date_range)
 
     # Git
 if __name__ == '__main__':
