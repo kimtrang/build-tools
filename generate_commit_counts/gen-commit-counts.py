@@ -108,7 +108,6 @@ class GenerateGitCommits(ConfigParse):
 
     def __init__(self, project_git_config):
         self.project_git_config = project_git_config
-        pprint(project_git_config)
         self.gitrepos = {'mobile-testkit': 'couchbaselabs'}
 
     def send_request(self, post_data=None):
