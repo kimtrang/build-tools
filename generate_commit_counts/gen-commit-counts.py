@@ -303,8 +303,10 @@ class GenerateGerritCommits(ConfigParse):
                             message = change['change_id'] + ' -- ' + change['subject']
                             commit_subjects.append(message)
                             count = count + 1
-                        else:
-                            break
+                        #else:
+                        #    break
+                    else:
+                        break
                 print(f'User: {self.gerrit_user_accounts[u_email]}')
                 print(f'Total Commit(s): {count}')
                 print('Repos(s): {}'.format(', '.join(repos)))
