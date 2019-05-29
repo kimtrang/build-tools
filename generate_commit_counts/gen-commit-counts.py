@@ -21,9 +21,6 @@ from pygerrit2 import GerritRestAPI, HTTPBasicAuth
 from email.message import EmailMessage
 import smtplib
 
-from pprint import pprint
-
-
 class ConfigParse:
     def __init__(self, args):
         self.project_gerrit_config = list()
@@ -309,15 +306,11 @@ class GenerateGerritCommits(ConfigParse):
                     else:
                         query += ["limit:10"]
                     changes = rest.get("/changes/?q=%s" % "%20".join(query))
-                    print(f'{len(changes)} changes')
                     # logger.info("%d changes", len(changes))
                     count = 0
                     repos = list()
                     commit_subjects = list()
                     for change in changes:
-                        print(f"change_id: {change['change_id']}")
-                        print(f"Date created: {change['created']}")
-                        print(f"project: {change['project']}")
                         if change['created'].startswith('2019'):
                             create_date = self.get_time(change['created'])
                             expire_days = int((currdate - create_date).days)
