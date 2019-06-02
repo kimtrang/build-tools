@@ -205,7 +205,7 @@ class GenerateGitCommits():
                         elif i["commit"]["author"]["name"]:  # check author's name
                             g_name = i["commit"]["author"]["name"]
                             # Find Git's author login id with a matching author's name
-                            git_author_id = [gid for (gid, gname) in self.git_users.items() if name in gname]
+                            git_author_id = [git_id for (git_id, git_name) in self.git_users.items() if g_name in git_name]
                             git_creds = git_author_id[0]
                             # git_creds = self.get_git_login_id(g_name)
                         else:
