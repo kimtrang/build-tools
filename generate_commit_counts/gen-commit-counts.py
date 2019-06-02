@@ -418,10 +418,6 @@ def main():
     recipient = ConfigParse(parse_args()).recipient
     smtp_server = ConfigParse(parse_args()).smtp_server
 
-    print(f'date_range: {date_range}')
-    print(f'recipient: {recipient}')
-    print(f'smtp_server: {smtp_server}')
-
     email_message = {}
     with open(email_file) as fl:
         email_message['subject'] = f'Gerrit/Git commit - {date_range} day(s) report'
