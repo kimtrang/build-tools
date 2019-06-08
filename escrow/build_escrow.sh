@@ -168,7 +168,10 @@ do
     pushd ${ESCROW}/build-manifests/cbdeps
     sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${ver}-${bldnum} | awk '{print $1}')
     echo "dep: $dep == ver: $ver == sha: $sha == manifest: ${dep}/${ver}/${ver}.xml"
-    get_cbddeps2_src ${dep} ${ver} ${dep}/${ver}/${ver}.xml ${sha}
+    # force master instead of sha as current current curl V2 master has latest changes
+    # need to switch back to ${sha} when doing real escrow or when curl V2 get updated
+    get_cbddeps2_src ${dep} ${ver} ${dep}/${ver}/${ver}.xml master
+    #get_cbddeps2_src ${dep} ${ver} ${dep}/${ver}/${ver}.xml ${sha}
   done
 
   # Get cbdep after V2 source
