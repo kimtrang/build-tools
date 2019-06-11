@@ -41,8 +41,6 @@ class ConfigParse:
         self.gerrit_auth = None
         self.gerrit_rest = None
         self.read_projects_config()
-        self.read_git_config()
-        self.read_gerrit_config()
 
     def read_projects_config(self):
         """
@@ -125,6 +123,7 @@ class GenerateGitCommits():
 
     def __init__(self, args):
         configObj = ConfigParse(args)
+        configObj.read_git_config()
         self.git_users = configObj.git_users
         self.git_url = configObj.git_url
         self.git_user = configObj.git_user
@@ -272,11 +271,14 @@ class GenerateGerritCommits():
 
     def __init__(self, args):
         configObj = ConfigParse(args)
+        configObj.read_gerrit_config()
         self.gerrit_user_accounts = defaultdict()
         self.gerrit_rest = configObj.gerrit_rest
         self.gerrit_auth = configObj.gerrit_auth
         self.date_range = configObj.date_range
         self.gerrit_user_emails = configObj.gerrit_user_emails
+        self.smtp_server = configObj.smtp_server
+        self.recipient = configObj.recipient
 
     def generate_gerrit_user_name(self):
         rest = self.gerrit_rest
@@ -414,9 +416,9 @@ def main():
     gitObj.git_commit_caller()
 
     # Send Email
-    date_range = ConfigParse(parse_args()).date_range
-    recipient = ConfigParse(parse_args()).recipient
-    smtp_server = ConfigParse(parse_args()).smtp_server
+    date_range = gerritObj.date_range
+    smtp_server = gerritObj.smtp_server
+    recipient = gerritObj.recipient
 
     email_message = {}
     with open(email_file) as fl:
