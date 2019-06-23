@@ -415,8 +415,8 @@ def main():
 
     gerritObj = GenerateGerritCommits(parse_args())
     gerritObj.gerrit_commit_caller()
-    #gitObj = GenerateGitCommits(parse_args())
-    # gitObj.git_commit_caller()
+    gitObj = GenerateGitCommits(parse_args())
+    gitObj.git_commit_caller()
 
     # Send Email
     date_range = gerritObj.date_range
