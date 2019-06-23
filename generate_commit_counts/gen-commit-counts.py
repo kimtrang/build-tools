@@ -292,7 +292,10 @@ class GenerateGerritCommits():
                             user_email = value
                         elif key == 'name':
                             user_name = value
-                    self.gerrit_user_accounts[user_email] = user_name
+                    if user_name:
+                        self.gerrit_user_accounts[user_email] = user_name
+                    else:
+                        self.gerrit_user_accounts[user_email] = user_email
             except RequestException as err:
                 print("Error: %s", str(err))
                 sys.exit(1)
@@ -382,10 +385,10 @@ def parse_args():
     parser.add_argument('--conf',
                         help="Project config category for each private repos",
                         default='projects.ini')
-    parser.add_argument('-gerrit-config', '--gerrit-config',
+    parser.add_argument('-gerritconf', '--gerrit-config',
                         help='Configuration file for Gerrit',
                         default='patch_via_gerrit.ini')
-    parser.add_argument('-git-config', '--git-config',
+    parser.add_argument('-gitconf', '--git-config',
                         help='Configuration file for Git API',
                         default='git_committer.ini')
     parser.add_argument('-d', '--date-range',
@@ -412,8 +415,8 @@ def main():
 
     gerritObj = GenerateGerritCommits(parse_args())
     gerritObj.gerrit_commit_caller()
-    gitObj = GenerateGitCommits(parse_args())
-    gitObj.git_commit_caller()
+    #gitObj = GenerateGitCommits(parse_args())
+    # gitObj.git_commit_caller()
 
     # Send Email
     date_range = gerritObj.date_range
