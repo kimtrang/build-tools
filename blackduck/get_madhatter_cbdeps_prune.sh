@@ -4,7 +4,7 @@ cd ${WORKSPACE}/thirdparty-src/deps
 
 # cbdeps-specific pruning
 
-rm -rf erlang/lib/*test*  depot_tools maven protoc-gen-go
+rm -rf erlang/lib/*test*  depot_tools maven protoc-gen-go rocksdb
 
 # extra libs in boost-1.67.0
 for i in asio fusion geometry hana phoenix spirit typeof; do
