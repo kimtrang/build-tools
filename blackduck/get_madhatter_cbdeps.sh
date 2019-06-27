@@ -93,7 +93,7 @@ download_cbdep() {
   then
     :
   else
-    get_cbdep_git ${dep} ${dep_git_branch}
+    get_cbdep_git ${dep} ${dep_git_branch} || exit 1
   fi
 }
 
@@ -129,13 +129,13 @@ do
   pushd ${TOP}/build-manifests/cbdeps
   sha=$(git log --pretty=oneline ${dep}/${ver}/${ver}.xml  |grep ${ver}-${bldnum} | awk '{print $1}')
   echo "dep: $dep == ver: $ver == sha: $sha == manifest: ${dep}/${ver}/${ver}.xml"
-  get_cbddeps2_src ${dep} ${ver} ${dep}/${ver}/${ver}.xml ${sha}
+  get_cbddeps2_src ${dep} ${ver} ${dep}/${ver}/${ver}.xml ${sha} || exit 1
 done
 
 # Get cbdep after V2 source
 for add_pack in ${add_packs}
 do
-  download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest}
+  download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest} || exit 1
 done
 
 # sort -u to remove redundant cbdeps
@@ -145,7 +145,7 @@ cat ${dep_v2_manifest} | sort -u > dep_v2_manifest.tmp
 mv dep_v2_manifest.tmp ${dep_v2_manifest}
 
 # Need this tool for v8 build
-get_cbdep_git depot_tools
+#get_cbdep_git depot_tools
 
 # Removed all .git and .repo
 find . -type d -name .repo -or -name .git | xargs rm -rf
