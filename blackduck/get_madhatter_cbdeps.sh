@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 TOP=${WORKSPACE}
 platform=centos7
