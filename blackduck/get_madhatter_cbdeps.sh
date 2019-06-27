@@ -32,6 +32,7 @@ get_cbdep_git() {
 get_build_manifests_repo() {
   cd $TOP
   heading "Downloading build-manifests ..."
+  rm -rf build-manifests
   git clone git://github.com/couchbase/build-manifests.git
 
 }

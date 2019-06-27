@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 cd ${WORKSPACE}/thirdparty-src/deps
 
