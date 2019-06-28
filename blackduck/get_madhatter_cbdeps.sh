@@ -7,6 +7,8 @@ git clone git://github.com/couchbase/tlm.git
 
 mkdir -p $TOP/thirdparty-src/deps
 
+BOOST_VERSION='boost-1.67.0'
+
 heading() {
   echo
   echo ::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -135,8 +137,26 @@ done
 # Get cbdep after V2 source
 for add_pack in ${add_packs}
 do
-  download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest} || exit 1
+  # skip download boost via cbdep_download
+  _dep=$(echo ${add_pack} | sed 's/:/ /g' | sed 's/:/ /g' | awk '{print $1}')
+  if [[ ${_dep} == 'boost' ]]; then
+      continue
+  else
+    download_cbdep $(echo ${add_pack} | sed 's/:/ /g') ${dep_manifest} || exit 1
+  fi
 done
+
+# boost download
+pushd $TOP/thirdparty-src/deps
+if [ ! -d 'boost' ]
+then
+    heading "Downloading cbdep boost ..."
+    git clone git://github.com/boostorg/boost -b ${BOOST_VERSION}
+    for i in asio fusion geometry hana phoenix spirit typeof; do
+        rm -rf boost/libs/$i
+    done
+fi
+popd
 
 # sort -u to remove redundant cbdeps
 cat ${dep_manifest} | sort -u > dep_manifest.tmp
