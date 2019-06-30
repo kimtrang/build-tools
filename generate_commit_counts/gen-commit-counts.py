@@ -337,8 +337,8 @@ class GenerateGerritCommits():
                 repos = collections.defaultdict(list)
                 commit_subjects = list()
                 for change in changes:
-                    if change['created'].startswith('2019'):
-                        create_date = self.get_time(change['created'])
+                    if change['submitted'].startswith('2019'):
+                        create_date = self.get_time(change['submitted'])
                         expire_days = int((currdate - create_date).days)
                         if expire_days <= date_range:
                             message = gerrit_changeid_link + str(change['_number']) + ' -- ' + change['subject']
