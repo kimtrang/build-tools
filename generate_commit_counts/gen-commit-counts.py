@@ -334,7 +334,6 @@ class GenerateGerritCommits():
                 repos = collections.defaultdict(list)
                 commit_subjects = list()
                 for change in changes:
-                    create_date = self.get_time(change['submitted'])
                     message = gerrit_changeid_link + str(change['_number']) + ' -- ' + change['subject']
                     repos[change['project']].append(message)
                     count = count + 1
