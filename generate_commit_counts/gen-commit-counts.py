@@ -135,7 +135,10 @@ class GenerateGitCommits():
         if post_data is not None:
             post_data = json.dumps(post_data).encode("utf-8")
 
-        full_url = self.git_url + "/repos/%s/%s/commits?&per_page=100" % (self.git_org, self.git_repo)
+        currdate = datetime.datetime.utcnow()
+        date_range = (currdate - timedelta(days=self.date_range))
+        date_range_str = date_range.strftime("%Y-%m-%d") + 'T00:00:00Z'
+        full_url = self.git_url + "/repos/%s/%s/commits?since=%s" % (self.git_org, self.git_repo, date_range_str)
         req = urllib.request.Request(full_url, post_data)
 
         req.add_header("Authorization", b"Basic " + base64.urlsafe_b64encode(self.git_user.encode("utf-8") + b":" + self.git_passwd.encode("utf-8")))
@@ -195,32 +198,27 @@ class GenerateGitCommits():
             repos = list()
 
             for i in data:
-                if i["commit"]["author"]["date"].startswith('2019'):
-                    create_date = self.get_time(i["commit"]["author"]["date"])
-                    expire_days = (currdate - create_date).days
-                    if expire_days <= self.date_range:
-                        if i["author"] != None:  # author's login id is present
-                            git_creds = str(i["author"]["id"])
-                        elif i["commit"]["author"]["name"]:  # check author's name
-                            g_name = i["commit"]["author"]["name"]
-                            # Find Git's author login id with a matching author's name
-                            git_author_id = [git_id for (git_id, git_name) in self.git_users.items() if g_name in git_name]
-                            git_creds = git_author_id[0]
-                            # git_creds = self.get_git_login_id(g_name)
-                        else:
-                            print(f'Cannot find valid author for this commit: {i["sha"]} - {i["html_url"]}')
-                            git_unknown_users[i["sha"]].add(i["html_url"])
-                        if git_creds:
-                            # Generate commit counts dictionary
-                            self.generate_gitid_data(git_creds, i["sha"], commits_counts)
-                            strip_repo_url = re.sub(r"https:\/\/github\.com\/(.*)\/commit.*$", r"\1", i["html_url"])
-                            # Generate repos
-                            repos.append(strip_repo_url) if strip_repo_url not in repos else repos
-                            commits_repos[git_creds].add(strip_repo_url)
-                            # Generate commit messages
-                            self.generate_gitid_data(git_creds, i["sha"] + ' -- ' + i["commit"]["message"], commits_message)
-                    else:
-                        break
+                if i["author"] != None:  # author's login id is present
+                    git_creds = str(i["author"]["id"])
+                elif i["commit"]["author"]["name"]:  # check author's name
+                    g_name = i["commit"]["author"]["name"]
+                    # Find Git's author login id with a matching author's name
+                    git_author_id = [git_id for (git_id, git_name) in self.git_users.items() if g_name in git_name]
+                    git_creds = git_author_id[0]
+                else:
+                    print(f'Cannot find valid author for this commit: {i["sha"]} - {i["html_url"]}')
+                    git_unknown_users[i["sha"]].add(i["html_url"])
+
+                if git_creds:
+                    # Generate commit counts dictionary
+                    self.generate_gitid_data(git_creds, i["sha"], commits_counts)
+                    strip_repo_url = re.sub(r"https:\/\/github\.com\/(.*)\/commit.*$", r"\1", i["html_url"])
+                    # Generate repos
+                    repos.append(strip_repo_url) if strip_repo_url not in repos else repos
+                    commits_repos[git_creds].add(strip_repo_url)
+                    # Generate commit messages
+                    self.generate_gitid_data(git_creds, i["sha"] + ' -- ' + i["commit"]["message"], commits_message)
+
             # Generate count and report
             # Dump the result to email.txt file: # Todo: template email
             with open(email_file, 'a') as fl:
@@ -308,7 +306,8 @@ class GenerateGerritCommits():
     def generate_gerrit_counts(self):
         currdate = datetime.datetime.utcnow()
         rest = self.gerrit_rest
-        date_range = self.date_range
+        date_range = (currdate - timedelta(days=self.date_range))
+        date_range_str = date_range.strftime("%Y-%m-%d")
         gerrit_changeid_link = 'http://review.couchbase.org/#/c/'
 
         # Dump the result to email.txt file:
@@ -320,15 +319,13 @@ class GenerateGerritCommits():
             fl.write(f"\n{patt80}\n\n")
             fl.write(f'\nDate Range - {date_range}')
             fl.write(f'\nFrom Date (UTC): {currdate}')
-            fl.write(f'\nTo Date (UTC): {(currdate - timedelta(date_range))}')
+            fl.write(f'\nTo Date (UTC): {date_range}')
             fl.write('\n')
             for u_email in self.gerrit_user_accounts:
                 try:
                     query = ["status:merged"]
-                    if self.gerrit_auth:
-                        query += ["owner:" + u_email]
-                    else:
-                        query += ["limit:10"]
+                    query += ["owner:" + u_email]
+                    query += ["after:" + date_range_str]
                     changes = rest.get("/changes/?q=%s" % "%20".join(query))
                 except RequestException as err:
                     print("Error: %s", str(err))
@@ -337,15 +334,10 @@ class GenerateGerritCommits():
                 repos = collections.defaultdict(list)
                 commit_subjects = list()
                 for change in changes:
-                    if change['submitted'].startswith('2019'):
-                        create_date = self.get_time(change['submitted'])
-                        expire_days = int((currdate - create_date).days)
-                        if expire_days <= date_range:
-                            message = gerrit_changeid_link + str(change['_number']) + ' -- ' + change['subject']
-                            repos[change['project']].append(message)
-                            count = count + 1
-                    else:
-                        break
+                    create_date = self.get_time(change['submitted'])
+                    message = gerrit_changeid_link + str(change['_number']) + ' -- ' + change['subject']
+                    repos[change['project']].append(message)
+                    count = count + 1
 
                 # write/print the result
                 fl.write(f'\nUser: {self.gerrit_user_accounts[u_email]}\n')
