@@ -2,6 +2,8 @@
 
 MANIFEST=${1}
 BLPASS=${2}
+RISK_REPORT=${3}
+NOTICE_REPORT=${4}
 PRODUCT='Couchbase-Lite-Android'
 
 repo init -u git://github.com/couchbase/manifest -m  couchbase-lite-android/${MANIFEST} -g all
@@ -49,3 +51,5 @@ bash <(curl -s https://detect.synopsys.com/detect.sh) \
 --detect.excluded.detector.types=NPM \
 --detect.cleanup=${DETECT_CLEANUP} \
 --detect.diagnostic.mode=${DIAGNOSTIC_MODE}
+--detect.notices.report=${NOTICE_REPORT} \
+--detect.risk.report.pdf=${RISK_REPORT}
