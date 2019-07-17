@@ -54,4 +54,5 @@ bash <(curl -s https://detect.synopsys.com/detect.sh) \
 --detect.notices.report=${NOTICE_REPORT} \
 --detect.notices.report.path=${WORKSPACE} \
 --detect.risk.report.pdf=${RISK_REPORT} \
---detect.risk.report.pdf.path=${WORKSPACE}
+--detect.risk.report.pdf.path=${WORKSPACE} \
+--detect.gradle.included.configurations=implementation,implementationDependenciesMetadata,releaseCompileClasspath,releaseImplementationDependenciesMetadata,releaseRuntimeClasspath
