@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MANIFEST=${1}
+BLPASS=${2}
 PRODUCT='Couchbase-Lite-Android'
 
 repo init -u git://github.com/couchbase/manifest -m  couchbase-lite-android/${MANIFEST} -g all
@@ -43,7 +44,7 @@ bash <(curl -s https://detect.synopsys.com/detect.sh) \
 --logging.level.com.synopsys.integration=DEBUG \
 --blackduck.url=https://blackduck.build.couchbase.com \
 --blackduck.username=sysadmin \
---blackduck.password=${BLACDUCK} \
+--blackduck.password=${BLPASS} \
 --blackduck.trust.cert=true  \
 --detect.excluded.detector.types=NPM \
 --detect.cleanup=${DETECT_CLEANUP} \
