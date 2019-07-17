@@ -39,9 +39,9 @@ cp local.properties ${WORKSPACE}/local.properties
 
 export PATH=$PATH:/usr/local/go/bin
 bash <(curl -s https://detect.synopsys.com/detect.sh) \
---detect.project.name=${PRODUCT}" \
+--detect.project.name=${PRODUCT} \
 --detect.project.version.name=${VERSION} \
---detect.project.codelocation.prefix="PRODUCT" \
+--detect.project.codelocation.prefix=${PRODUCT} \
 --detect.source.path=${WORKSPACE} \
 --logging.level.com.synopsys.integration=DEBUG \
 --blackduck.url=https://blackduck.build.couchbase.com \
