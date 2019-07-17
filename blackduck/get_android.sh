@@ -50,6 +50,6 @@ bash <(curl -s https://detect.synopsys.com/detect.sh) \
 --blackduck.trust.cert=true  \
 --detect.excluded.detector.types=NPM \
 --detect.cleanup=${DETECT_CLEANUP} \
---detect.diagnostic.mode=${DIAGNOSTIC_MODE}
+--detect.diagnostic.mode=${DIAGNOSTIC_MODE} \
 --detect.notices.report=${NOTICE_REPORT} \
 --detect.risk.report.pdf=${RISK_REPORT}
