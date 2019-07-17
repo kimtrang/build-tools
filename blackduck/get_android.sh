@@ -3,7 +3,7 @@
 MANIFEST=${1}
 PRODUCT='Couchbase-Lite-Android'
 
-repo init -u git://github.com/couchbase/manifest -m  couchbase-lite-android/${MANIFEST}.xml -g all
+repo init -u git://github.com/couchbase/manifest -m  couchbase-lite-android/${MANIFEST} -g all
 repo sync --jobs=6 
 
 # clean up
