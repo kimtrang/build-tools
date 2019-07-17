@@ -52,4 +52,6 @@ bash <(curl -s https://detect.synopsys.com/detect.sh) \
 --detect.cleanup=${DETECT_CLEANUP} \
 --detect.diagnostic.mode=${DIAGNOSTIC_MODE} \
 --detect.notices.report=${NOTICE_REPORT} \
---detect.risk.report.pdf=${RISK_REPORT}
+--detect.notices.report.path=${WORKSPACE} \
+--detect.risk.report.pdf=${RISK_REPORT} \
+--detect.risk.report.pdf.path=${WORKSPACE}
