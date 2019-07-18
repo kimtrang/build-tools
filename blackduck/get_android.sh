@@ -51,7 +51,7 @@ bash <(curl -s https://detect.synopsys.com/detect.sh) \
 --blackduck.username=sysadmin \
 --blackduck.password=${BLPASS} \
 --blackduck.trust.cert=true  \
---detect.api.timeout=900000 \
+--detect.api.timeout=18000000 \
 --detect.excluded.detector.types=NPM \
 --detect.cleanup=${DETECT_CLEANUP} \
 --detect.diagnostic.mode=${DIAGNOSTIC_MODE} \
