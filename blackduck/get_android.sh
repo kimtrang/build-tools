@@ -1,10 +1,13 @@
 #!/bin/bash
 
-MANIFEST=${1}
-BLPASS=${2}
-RISK_REPORT=${3}
-NOTICE_REPORT=${4}
-PRODUCT='Couchbase-Lite-Android'
+PRODUCT=${1}
+VERSION=${2}
+MANIFEST=${3}
+BLPASS=${4}
+RISK_REPORT=${5}
+NOTICE_REPORT=${6}
+SDK_DIR=${7}
+NDK_DIR=${8}
 
 repo init -u git://github.com/couchbase/manifest -m  couchbase-lite-android/${MANIFEST} -g all
 repo sync --jobs=6 
