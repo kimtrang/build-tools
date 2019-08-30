@@ -16,7 +16,7 @@ couchbasebuild/server-ubuntu16-build:20190501
 couchbasebuild/server-ubuntu18-build:20190424"
 
 # Go versions
-GOVERS="1.7.6 1.8.3 1.8.5 1.9.6 1.10.3 1.11.4 1.11.5"
+GOVERS="1.7.6 1.8.3 1.8.5 1.9.6 1.10.3 1.11.4 1.11.5 1.12.4"
 
 # JDK version - extract from analytics/cmake/Modules/FindCouchbaseJava.cmake
 OPENJDK_NAME=openjdk
