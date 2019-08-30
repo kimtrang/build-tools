@@ -10,7 +10,7 @@ IMAGES="couchbasebuild/server-amzn2-build:20190424
 couchbasebuild/server-centos7-build:20190430
 couchbasebuild/server-debian8-build:20190426
 couchbasebuild/server-debian9-build:20190426
-couchbasebuild/server-rhel8-build:20190524
+build-docker.couchbase.com/couchbasebuild/server-rhel8-build:20190524
 couchbasebuild/server-suse15-build:20190424
 couchbasebuild/server-ubuntu16-build:20190501
 couchbasebuild/server-ubuntu18-build:20190424"
